@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Client Doesn't Announce When They're Leaving — Andy Rapaport</title>
+  <meta name="description" content="What I built for Tableau Conference — and why it's the system we were still trying to solve for when I left PNC in 2021.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://andyrapaport.com/article-sentinel-mockup.html">
+  <meta property="og:title" content="A Client Doesn't Announce When They're Leaving">
+  <meta property="og:description" content="What I built for Tableau Conference — and why it's the system we were still trying to solve for when I left PNC in 2021.">
+  <meta property="og:image" content="https://andyrapaport.com/og-image.png">
+  <meta property="og:site_name" content="Andy Rapaport">
+  <meta property="article:author" content="Andy Rapaport">
+  <meta property="article:published_time" content="2026-05-01">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="A Client Doesn't Announce When They're Leaving">
+  <meta name="twitter:description" content="What I built for Tableau Conference — and why it's the system we were still trying to solve for when I left PNC in 2021.">
+  <meta name="twitter:image" content="https://andyrapaport.com/og-image.png">
+
+  <!-- Cloudflare Web Analytics — replace YOUR_TOKEN after setting up domain in Cloudflare -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --surface: rgba(255,255,255,0.03);
+      --surface-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.16);
+      --text: #F1F5F9;
+      --muted: #64748B;
+      --subtle: #334155;
+      --indigo: #6366F1;
+      --teal: #14B8A6;
+      --purple: #A855F7;
+      --nav-h: 64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    [data-theme="light"] {
+      --bg: #F8FAFC;
+      --surface: rgba(0,0,0,0.025);
+      --surface-hover: rgba(0,0,0,0.05);
+      --border: rgba(0,0,0,0.09);
+      --border-hover: rgba(0,0,0,0.18);
+      --text: #0F172A;
+      --muted: #64748B;
+      --subtle: #94A3B8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── READING PROGRESS ── */
+    .reading-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, #6366F1, #14B8A6, #A855F7);
+      z-index: 200;
+      transition: width 0.1s linear;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      padding: 0 40px;
+      background: rgba(8,8,8,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="light"] nav { background: rgba(248,250,252,0.85); }
+
+    .nav-logo {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+      margin-right: auto;
+    }
+
+    .nav-logo span { color: var(--indigo); }
+
+    .nav-back {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .nav-back:hover { color: var(--text); }
+
+    .theme-toggle {
+      margin-left: 24px;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .theme-toggle:hover { background: var(--surface-hover); border-color: var(--border-hover); }
+
+    /* ── ARTICLE HEADER ── */
+    .article-header {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 72px) 24px 56px;
+    }
+
+    .article-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .tag { display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:var(--surface); white-space:nowrap; }
+    .tag.t-agentic { border-color:rgba(168,85,247,0.3); color:#C084FC; background:rgba(168,85,247,0.06); }
+    .tag.t-tableau { border-color:rgba(99,102,241,0.3); color:#818CF8; background:rgba(99,102,241,0.06); }
+    .tag.t-sf { border-color:rgba(59,130,246,0.3); color:#60A5FA; background:rgba(59,130,246,0.06); }
+
+    .article-title {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.1s forwards;
+    }
+
+    .article-deck {
+      font-size: 19px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 36px;
+      max-width: 620px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.2s forwards;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.3s forwards;
+    }
+
+    .meta-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .meta-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+    .meta-body { flex: 1; }
+    .meta-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .meta-details { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .meta-date { font-size: 12px; color: var(--muted); }
+    .meta-read { font-size: 12px; color: var(--muted); }
+
+    /* ── ARTICLE BODY ── */
+    .article-body {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    .article-body p {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    .article-body p.muted {
+      color: var(--muted);
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    .article-body strong { font-weight: 700; color: var(--text); }
+
+    .article-body em { font-style: italic; color: var(--muted); }
+
+    /* Pull quote */
+    .pull-quote {
+      border-left: 3px solid var(--indigo);
+      padding: 4px 0 4px 24px;
+      margin: 40px 0;
+    }
+
+    .pull-quote p {
+      font-size: 20px !important;
+      font-weight: 600;
+      line-height: 1.5 !important;
+      color: var(--text) !important;
+      margin-bottom: 0 !important;
+      letter-spacing: -0.01em;
+    }
+
+    /* Stat callout */
+    .stat-row {
+      display: flex;
+      gap: 20px;
+      margin: 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 160px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .stat-card .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--indigo);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Section label */
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--indigo);
+      margin-bottom: 20px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 16px;
+      height: 1px;
+      background: var(--indigo);
+    }
+
+    /* Alert mockup */
+    .slack-mockup {
+      background: #1A1D21;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 40px 0;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+
+    [data-theme="light"] .slack-mockup {
+      background: #F0F0F0;
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    .slack-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    [data-theme="light"] .slack-header { border-bottom-color: rgba(0,0,0,0.08); }
+
+    .slack-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #E01E5A, #ECB22E);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .slack-channel { font-size: 13px; font-weight: 600; color: #E8E8E8; }
+    [data-theme="light"] .slack-channel { color: #1D1C1D; }
+
+    .slack-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .slack-key { color: #7A7F8A; }
+    [data-theme="light"] .slack-key { color: #6B7280; }
+
+    .slack-val { color: #E8E8E8; font-weight: 600; }
+    [data-theme="light"] .slack-val { color: #1D1C1D; }
+
+    .slack-val.danger { color: #FE5C4C; }
+    .slack-val.safe { color: #06A59A; }
+
+    .slack-divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 12px 0; }
+    [data-theme="light"] .slack-divider { border-color: rgba(0,0,0,0.08); }
+
+    .slack-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #E8E8E8;
+      margin-top: 12px;
+      margin-right: 8px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    [data-theme="light"] .slack-action { border-color: rgba(0,0,0,0.2); color: #1D1C1D; }
+    .slack-action.primary { background: #4285F4; border-color: #4285F4; color: white; }
+
+    /* ── AUTHOR BIO ── */
+    .article-bio {
+      max-width: 680px;
+      margin: 0 auto 80px;
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-left: 24px;
+      margin-right: 24px;
+    }
+
+    @media (max-width: 680px) { .article-bio { flex-direction: column; } }
+
+    .bio-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .bio-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+    .bio-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .bio-body .bio-role { font-size: 12px; color: var(--indigo); font-weight: 600; margin-bottom: 10px; }
+    .bio-body p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+
+    .bio-links { display: flex; gap: 16px; }
+    .bio-links a { font-size: 12px; font-weight: 600; color: var(--indigo); text-decoration: none; }
+    .bio-links a:hover { color: #818CF8; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 36px 40px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-name { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .footer-tagline { font-size: 12px; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="reading-progress" id="readingProgress"></div>
+<nav>
+  <a href="hub-mockup.html" class="nav-logo">Andy<span>.</span></a>
+  <a href="hub-mockup.html#writing" class="nav-back">← All writing</a>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌙</button>
+</nav>
+
+<!-- ARTICLE HEADER -->
+<div class="article-header">
+  <div class="article-tags">
+    <span class="tag t-agentic">Agentic Analytics</span>
+    <span class="tag t-tableau">Tableau</span>
+    <span class="tag t-sf">Salesforce</span>
+  </div>
+  <h1 class="article-title">A Client Doesn't Announce When They're Leaving</h1>
+  <p class="article-deck">What I built for Tableau Conference — and why it's the system we were still trying to solve for when I left PNC in 2021.</p>
+  <div class="article-meta">
+    <div class="meta-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+    <div class="meta-body">
+      <div class="meta-name">Andy Rapaport</div>
+      <div class="meta-details">Principal Solution Engineer · Salesforce</div>
+    </div>
+    <div class="meta-right">
+      <div class="meta-date">May 2026</div>
+      <div class="meta-read">7 min read</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE BODY -->
+<div class="article-body">
+
+  <p>Marcus Johnson is a commercial banking relationship manager. He starts his Tuesday morning the same way he starts every Tuesday — coffee, Slack, pipeline review. He manages 23 accounts across logistics, manufacturing, and healthcare. He's good at his job. His clients trust him.</p>
+
+  <p>What he doesn't know — what no one has told him — is that one of his best accounts is quietly leaving.</p>
+
+  <p>Coastal Logistics. $4.2 million in annual revenue. Deposits are down 34% over six months. Treasury management transactions — the ACH payments, the wires, the cash management activity that signals real operating business — have dropped from 1,169 to 390 per month. The CFO hasn't heard from Marcus in 80 days.</p>
+
+  <p>There's no alert. No flag. No email. The data is all there — in the core banking system, in the CRM, in the transaction ledger. But nobody put it together. Nobody was watching.</p>
+
+  <div class="pull-quote">
+    <p>By the time Marcus notices, Coastal Logistics will already be halfway out the door.</p>
+  </div>
+
+  <hr>
+
+  <p>This is the scenario I opened with at Tableau Conference this May. And while Coastal Logistics is fictional, the situation isn't.</p>
+
+  <p>I know because I lived it. Before joining Salesforce, I spent 11 years at PNC Bank building exactly this kind of analysis — risk models, portfolio monitoring reports, RM scorecards. We knew which clients were showing early attrition signals. The analytics were solid. What we couldn't do was close the loop. We didn't have a way to get that insight into the RM's workflow at the right moment, in a form they could act on immediately. The data sat in reports that required someone to go looking for it. Most of the time, nobody did.</p>
+
+  <p>That experience is why Sentinel felt personal to me. It's not a demo of what might be possible someday. It's the system we were still trying to figure out how to build when I left PNC in 2021 — the platform just wasn't there yet.</p>
+
+  <p>Here's what makes that gap so costly:</p>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-num">12 hrs</div>
+      <div class="stat-label">of an RM's week spent actually interacting with clients</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">72%</div>
+      <div class="stat-label">of banking customers say they'd switch for better service</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">50%</div>
+      <div class="stat-label">of business decisions augmented by AI agents by 2027 — Gartner</div>
+    </div>
+  </div>
+
+  <p>The problem isn't effort. It's that the insight never reaches the person who needs it, when they need it. We called it the gap between <strong>knowing and doing</strong>.</p>
+
+  <hr>
+
+  <div class="section-label">Three waves</div>
+
+  <p>Analytics has been trying to close that gap for decades — and it keeps solving the wrong half of the problem.</p>
+
+  <p>The first wave of enterprise analytics was traditional reporting: IT-led, static, retroactive. It answered the question "what happened?" — weeks after the fact.</p>
+
+  <p>The second wave — self-service analytics — put the tools in business users' hands. Tableau was built on this wave. Faster, more visual, more personal. Still answering "what happened?" but now you could find the answer yourself.</p>
+
+  <p>We're now entering a third wave: <strong>Agentic Analytics</strong>. The question shifts from "what happened?" to "what happens next?" — and the answer doesn't wait for you to go looking for it.</p>
+
+  <p>Gartner projects that 50% of business decisions will be augmented or automated by AI agents by 2027. I'd have been skeptical of that number a few years ago. After building Sentinel, I'm not.</p>
+
+  <hr>
+
+  <div class="section-label">Sentinel</div>
+
+  <p>For Tableau Conference this year, I built an AI-powered analytics agent — we called it Sentinel — to show what this looks like in practice. My colleague Brandi Gutfriend joined me on stage to present it.</p>
+
+  <p>Sentinel is a portfolio monitoring agent built on Salesforce Data 360, Tableau Next, Agentforce, and Slack. It runs overnight, scans every client in a commercial banking portfolio against a semantic model that combines deposit trends, product holdings, transaction volumes, and engagement history. When a client crosses a risk threshold, the system acts.</p>
+
+  <p>Marcus doesn't open a dashboard Tuesday morning. He opens Slack and finds this waiting for him:</p>
+
+  <!-- Slack Alert Mockup -->
+  <div class="slack-mockup">
+    <div class="slack-header">
+      <div class="slack-icon">⚡</div>
+      <div class="slack-channel">#commercial-banking-rms</div>
+    </div>
+    <div class="slack-row"><span class="slack-key">Client</span><span class="slack-val">Coastal Logistics</span></div>
+    <div class="slack-row"><span class="slack-key">Risk Score</span><span class="slack-val danger">89 / 100 ↑</span></div>
+    <div class="slack-row"><span class="slack-key">Revenue at Risk</span><span class="slack-val danger">$840K</span></div>
+    <div class="slack-row"><span class="slack-key">Deposit Trend</span><span class="slack-val danger">↓ 34% over 6 months</span></div>
+    <div class="slack-row"><span class="slack-key">TM Transactions</span><span class="slack-val danger">↓ 67% (1,169 → 390/mo)</span></div>
+    <div class="slack-row"><span class="slack-key">Days Since Contact</span><span class="slack-val danger">80 days ⚠️</span></div>
+    <hr class="slack-divider">
+    <span class="slack-action primary">📧 View draft outreach</span>
+    <span class="slack-action">📋 Call briefing</span>
+    <span class="slack-action">📊 Full profile</span>
+  </div>
+
+  <p>He didn't go looking for this. The system found it and brought it to him — along with a personalized outreach email already drafted and a call briefing with talking points and product context.</p>
+
+  <hr>
+
+  <p>But the part that landed hardest with the audience wasn't the alert. It was what happened next.</p>
+
+  <p>Marcus's manager gets a separate digest — not a dashboard to open and interpret, but a summary pushed to her. It shows which RMs on her team have open attrition risk, how long alerts have been sitting unaddressed, and what the revenue exposure is.</p>
+
+  <p>One of her RMs has $840K in unaddressed risk sitting for five days.</p>
+
+  <p>She escalates his queue in one click. Salesforce creates the follow-up task. The RM gets notified. The entire chain is logged. And if she wants to go deeper, an Agentforce agent can answer live questions about any client in the portfolio — right in Slack, returning charts, not paragraphs.</p>
+
+  <div class="pull-quote">
+    <p>The system doesn't stop at finding problems. It tracks whether anyone acted on them.</p>
+  </div>
+
+  <hr>
+
+  <div class="section-label">What agentic actually means</div>
+
+  <p>When I describe Sentinel, I call it an agentic analytics system. Here's what that actually means in practice.</p>
+
+  <p>Traditional analytics is reactive. Someone has a question, they open a tool, they get an answer. The human drives; the software responds.</p>
+
+  <p>Agentic analytics flips that. The software monitors, decides what matters, and acts — alerting, drafting, escalating, logging. The human stays in the loop at the moments that require judgment: do I send this email? Do I escalate this RM? But the system handles the gap between insight and action that used to fall through the cracks.</p>
+
+  <p>One of the slides we showed at TC26 asked: <em>What if every decision a bank made — from risk to revenue — was guided by AI, grounded in trusted data that everyone could act on?</em></p>
+
+  <p>That's where this is going. We're closer than most people realize.</p>
+
+  <hr>
+
+  <p>What got us here isn't one big breakthrough — it's several things arriving at roughly the same time. Semantic data models that give AI a shared, governed understanding of your business. Language models that can take structured data and turn it into something a person can act on. Workflow automation that connects insight to action without a team of engineers building the plumbing.</p>
+
+  <p>Three years ago, one or two of those pieces existed. Not all three, not integrated, not at this quality. That's what changed.</p>
+
+  <hr>
+
+  <p>The room in San Diego was packed. Honestly, I wasn't sure how the opening would land — leading with a fictional RM's Tuesday morning felt like a risk.</p>
+
+  <p>It didn't need to. People recognized Coastal Logistics immediately. Not the specific company — the situation. A relationship that went quiet. A problem that surfaced too late. A dashboard that nobody checked because nobody knew they were supposed to.</p>
+
+  <p>That's the gap Sentinel was built to close. Not by replacing the relationship manager, but by making sure they never have to wonder what they're missing.</p>
+
+  <p><strong>Coastal Logistics is still a client. That's the point.</strong></p>
+
+</div>
+
+<!-- AUTHOR BIO -->
+<div class="article-bio" style="max-width:680px; margin: 0 auto 80px; margin-left: auto; margin-right: auto;">
+  <div class="bio-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+  <div class="bio-body">
+    <h4>Andy Rapaport</h4>
+    <div class="bio-role">Principal Solution Engineer · Salesforce</div>
+    <p>Before Salesforce, Andy spent 11 years at PNC Bank building analytics for commercial banking. He writes about Tableau, Salesforce, AI, and the future of enterprise analytics.</p>
+    <div class="bio-links">
+      <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
+      <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+      <a href="hub-mockup.html#writing">More writing →</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-name">Andy Rapaport</div>
+    <div class="footer-tagline">Building AI-native analytics, one demo at a time.</div>
+  </div>
+  <nav class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+    <a href="hub-mockup.html">Home</a>
+  </nav>
+</footer>
+
+<script>
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  function toggleTheme() {
+    const isLight = html.getAttribute('data-theme') === 'light';
+    html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+    btn.textContent = isLight ? '🌙' : '☀️';
+    localStorage.setItem('theme', isLight ? 'dark' : 'light');
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) { html.setAttribute('data-theme', saved); btn.textContent = saved === 'light' ? '☀️' : '🌙'; }
+
+  // Reading progress bar
+  const progressBar = document.getElementById('readingProgress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+  });
+
+  // Keyboard shortcut: D = toggle theme
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) toggleTheme();
+  });
+</script>
+</body>
+</html>
