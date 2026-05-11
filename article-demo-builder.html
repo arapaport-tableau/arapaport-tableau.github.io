@@ -446,11 +446,11 @@
 
   <p>My athletic club offers childcare on a first-come, first-served basis. If you don't sign up the moment the slots open, you're out of luck. For a while I was doing it manually — staying up late, refreshing the page, trying to snag a spot before they filled up. Eventually I got tired of it and built a small app to do it for me. Claude Code did most of the heavy lifting. The app worked. My kids got their slots. I got to sleep.</p>
 
-  <p>That was the moment I understood what this tool could actually do.</p>
+  <p>I filed that away.</p>
 
   <hr>
 
-  <p>I'm a Principal Solutions Engineer at Salesforce. My job is to show customers what Tableau and Salesforce can do — live, in front of executives, in demos that are supposed to feel real and relevant to their business. A good demo can change the outcome of a deal. A generic one gets politely ignored.</p>
+  <p>I'm a Principal Solutions Engineer at Salesforce. My job is to show customers what Tableau and Salesforce can do — live, in front of executives, in demos that are supposed to feel real and relevant to their specific business. That last part matters. A demo built around your industry and your problem reads completely differently than a generic one.</p>
 
   <p>The problem was that building a good Tableau Next demo was brutally time-consuming. Here's what it actually took:</p>
 
@@ -500,11 +500,11 @@
     </div>
   </div>
 
-  <p>Each step had its own decisions, its own failure modes, its own time cost. A full build could run two weeks. So in practice, we didn't build full demos. We'd put up a dashboard, show Concierge, and call it a day. Tableau Next is capable of far more than that — but nobody had the time.</p>
+  <p>A full build could run two weeks. In practice, that meant we weren't really building full demos. We'd put up a dashboard, show Concierge, and call it done. Tableau Next can do a lot more than that — nobody had the time to find out.</p>
 
   <hr>
 
-  <p>After the childcare app, I started thinking about what else I could automate.</p>
+  <p>After the childcare app, I started paying more attention to what else I could automate.</p>
 
   <p>I built a Tableau Pulse demo builder first — a Claude Code skill that generates Pulse metric demos with synthetic data and subscriptions from a plain English description. That worked, so I kept going. A few weeks later — after a fair amount of wrestling with APIs and reverse-engineering things that weren't documented anywhere — I had a <a href="https://arapaport-tableau.github.io/Tableau-Next-Claude-Skills/" target="_blank">Tableau Next demo builder</a> that handled the whole pipeline: story, data, signals, deployment, semantic model, visualizations, dashboards, Concierge.</p>
 
@@ -514,13 +514,13 @@
 
   <hr>
 
-  <p>But the time savings aren't the interesting part.</p>
+  <p>But the time savings aren't really the point.</p>
 
-  <p>When a demo build costs two weeks, you play it safe. Dashboard plus Concierge, maybe a little storytelling on top. You can't afford to try something that might not come together. When it costs a few hours, you can actually take a swing at something.</p>
+  <p>When a demo build costs two weeks, you play it safe. Dashboard plus Concierge, maybe a little storytelling on top. You don't take swings on something that might not come together. When it costs a few hours, you actually can.</p>
 
   <p>That's how Sentinel happened.</p>
 
-  <p>Sentinel was the agentic analytics demo I presented at Tableau Conference this May — a portfolio monitoring agent for commercial banking. It scans every client overnight, flags attrition risk, drafts outreach emails, alerts the relationship manager in Slack, and escalates to the manager if nothing gets acted on.</p>
+  <p>Sentinel was the agentic analytics demo I put together for Tableau Conference this May — a portfolio monitoring agent for commercial banking. It scans every client overnight, flags attrition risk, drafts outreach, and alerts the RM in Slack. If nothing gets acted on, it escalates to the manager.</p>
 
   <!-- VISUAL 2: SENTINEL STACK -->
   <div class="stack-wrap">
@@ -554,7 +554,7 @@
     <p class="stack-desc">Five platforms working together. The agent runs overnight, identifies at-risk clients, drafts outreach, and surfaces alerts — without anyone having to go looking for the problem.</p>
   </div>
 
-  <p>I would never have attempted that under the old process. Too complex, too many moving parts — not worth a two-week bet on something that might not come together. The demo builder made it a real option.</p>
+  <p>I wouldn't have attempted that under the old process. Too many pieces, too long a runway to bet on something that might not land. The demo builder made it worth trying.</p>
 
   <hr>
 
@@ -562,7 +562,7 @@
 
   <p>I'm not a developer either. I had zero programming experience when I built the childcare app. What I had was a clear picture of what I wanted it to do and enough domain knowledge to tell when it was doing it wrong.</p>
 
-  <p>What Claude needs is direction and someone who can tell when the output is wrong. If you understand data, analytics, and how the platform actually works, you have enough.</p>
+  <p>What Claude needs is direction and someone who can tell when the output is wrong. If you know the platform, you have enough.</p>
 
   <p>The demo builder took a few weeks. Sentinel took a few days on top of that. Neither required me to write a line of code from scratch.</p>
 
@@ -570,7 +570,7 @@
 
   <p>The <a href="https://arapaport-tableau.github.io/Tableau-Next-Claude-Skills/" target="_blank">Tableau Next Demo Builder</a> is open source. If you're a Solutions Engineer working with Tableau, it's built for you — describe the prospect, the persona, and the story, and it handles the rest.</p>
 
-  <p>The best demos I've run came out of the last few months.</p>
+  <p>Anyone running Tableau demos should have something like this. I built mine. You could probably build something better.</p>
 
 </div>
 
