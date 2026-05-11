@@ -570,56 +570,33 @@
 <!-- ARTICLE BODY -->
 <div class="article-body">
 
-  <p>Marcus Johnson is a commercial banking relationship manager. He starts his Tuesday morning the same way he starts every Tuesday — coffee, Slack, pipeline review. He manages 23 accounts across logistics, manufacturing, and healthcare. He's good at his job. His clients trust him.</p>
+  <p>Marcus Johnson manages a commercial portfolio with about three dozen clients. Across manufacturing, logistics, healthcare — the normal mix you'd expect at a regional bank. He's a good RM and clients trust him.</p>
 
-  <p>What he doesn't know — what no one has told him — is that one of his best accounts is quietly leaving.</p>
+  <p>One of those clients is in the process of leaving and he doesn't know it yet.</p>
 
-  <p>Coastal Logistics. $4.2 million in annual revenue. Deposits are down 34% over six months. Treasury management transactions — the ACH payments, the wires, the cash management activity that signals real operating business — have dropped from 1,169 to 390 per month. The CFO hasn't heard from Marcus in 80 days.</p>
+  <p>In the demo I used at Tableau Conference this year, the client was called Coastal Logistics. It's a fictional company, but this situation is something that happens in real life. Deposits were down around 34% over six months. Treasury management activity had fallen off pretty sharply too — ACH and wire volume mostly. The CFO hadn't heard from Marcus in almost three months.</p>
 
-  <p>There's no alert. No flag. No email. The data is all there — in the core banking system, in the CRM, in the transaction ledger. But nobody put it together. Nobody was watching.</p>
+  <p>Nobody missed it because they were bad at their job. The information just lived in different places and nobody was really connecting it together in a way that surfaced early enough to matter. Some of it was in the core deposit platform. Some in CRM. Some in other transactional and billing systems. There probably was a report somewhere that would've shown it if somebody had gone looking.</p>
 
-  <div class="pull-quote">
-    <p>By the time Marcus notices, Coastal Logistics will already be halfway out the door.</p>
-  </div>
+  <p>That's kind of the point.</p>
 
   <hr>
 
-  <p>This is the scenario I opened with at Tableau Conference this May. And while Coastal Logistics is fictional, the situation isn't.</p>
+  <p>Before Salesforce I spent 11 years at PNC, and a decent amount of that time was tied to portfolio analytics and other data driven initiatives. RM scorecards, relationship health reporting, that sort of thing. We were actually pretty good at identifying early warning signs. The hard part was operationalizing any of it.</p>
 
-  <p>I know because I lived it. Before joining Salesforce, I spent 11 years at PNC Bank building exactly this kind of analysis — risk models, portfolio monitoring reports, RM scorecards. We knew which clients were showing early attrition signals. The analytics were solid. What we couldn't do was close the loop. We didn't have a way to get that insight into the RM's workflow at the right moment, in a form they could act on immediately. The data sat in reports that required someone to go looking for it. Most of the time, nobody did.</p>
+  <p>You'd build the dashboard and socialize it to the end users. Then you'd realize the entire process still depended on somebody remembering to open it at the exact right moment.</p>
 
-  <p>That experience is why Sentinel felt personal to me. It's not a demo of what might be possible someday. It's the system we were still trying to figure out how to build when I left PNC in 2021 — the platform just wasn't there yet.</p>
+  <p>Most of the time they didn't. Or they were busy. Or the signal got buried under fifteen other priorities that day.</p>
 
-  <p>Here's what makes that gap so costly:</p>
-
-  <div class="stat-row">
-    <div class="stat-card">
-      <div class="stat-num">12 hrs</div>
-      <div class="stat-label">of an RM's week spent actually interacting with clients</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">72%</div>
-      <div class="stat-label">of banking customers say they'd switch for better service</div>
-    </div>
-  </div>
-
-  <p>The problem isn't effort. It's that the insight never reaches the person who needs it, when they need it. We called it the gap between <strong>knowing and doing</strong>.</p>
+  <p>So when we started building the Sentinel demo for Tableau Conference, the thing I cared about wasn't really the visualization layer. It was whether the system could take on the responsibility of noticing in the first place.</p>
 
   <hr>
 
-  <p>For most of the last twenty years, better analytics meant faster answers to questions you already knew to ask. Tableau was built on that — anyone can explore the data, find the insight themselves, without waiting for IT. Still true. Still valuable.</p>
+  <p>Under the hood it wasn't actually that complicated.</p>
 
-  <p>But the problem Marcus had wasn't that he couldn't find the answer. He didn't know the question existed.</p>
+  <p>Sentinel runs overnight against the commercial portfolio looking at deposit behavior, treasury activity, product usage, recent engagement history — basically the relationship signals banks already track today, just tied together through a semantic layer. If something crosses a threshold, the system generates an alert and pushes it directly into Slack.</p>
 
-  <hr>
-
-  <div class="section-label">Sentinel</div>
-
-  <p>For Tableau Conference this year, I built an AI-powered analytics agent — we called it Sentinel — to show what this looks like in practice. My colleague Brandi Gutfriend joined me on stage to present it.</p>
-
-  <p>Sentinel is a portfolio monitoring agent built on Salesforce Data 360, Tableau Next, Agentforce, and Slack. It runs overnight, scans every client in a commercial banking portfolio against a semantic model that combines deposit trends, product holdings, transaction volumes, and engagement history. When a client crosses a risk threshold, the system acts.</p>
-
-  <p>Marcus doesn't open a dashboard Tuesday morning. He opens Slack and finds this waiting for him:</p>
+  <p>So Marcus walks in Monday morning and the issue is already waiting for him. An outreach email has already been drafted on his behalf and a call prep document has also been generated with data queried from the same semantic model.</p>
 
   <!-- Slack Alert Mockup -->
   <div class="slack-mockup">
@@ -639,8 +616,6 @@
     <span class="slack-action">📊 Full profile</span>
   </div>
 
-  <p>He didn't go looking for this. The system found it and brought it to him — along with a personalized outreach email already drafted and a call briefing with talking points and product context.</p>
-
   <div class="video-wrap">
     <div class="video-label">Watch the demo</div>
     <div class="video-container">
@@ -650,37 +625,29 @@
 
   <hr>
 
-  <p>But the part that landed hardest with the audience wasn't the alert. It was what happened next.</p>
+  <p>That part landed with the audience well enough, but honestly the thing people kept asking about afterward was the manager workflow.</p>
 
-  <p>Marcus's manager gets a separate digest — not a dashboard to open and interpret, but a summary pushed to her. It shows which RMs on her team have open attrition risk, how long alerts have been sitting unaddressed, and what the revenue exposure is.</p>
+  <p>The RM's manager gets their own summary each week showing unresolved attrition risk across the team, how long alerts have been sitting untouched, estimated revenue exposure, things like that. One of the scenarios showed an RM sitting on about $840K of exposed revenue for several days without taking action.</p>
 
-  <p>One of her RMs has $840K in unaddressed risk sitting for five days.</p>
-
-  <p>She escalates his queue in one click. Salesforce creates the follow-up task. The RM gets notified. The entire chain is logged. And if she wants to go deeper, an Agentforce agent can answer live questions about any client in the portfolio — right in Slack, returning charts, not paragraphs.</p>
+  <p>From there the escalation process was automatic. Create the task. Notify the RM. Log the activity back into Salesforce. If the manager wanted more detail on a client, they could ask the Agentforce agent directly in Slack and get back charts and supporting context instead of just text summaries.</p>
 
   <div class="pull-quote">
-    <p>The system doesn't stop at finding problems. It tracks whether anyone acted on them.</p>
+    <p>What people reacted to wasn't really the AI piece by itself. Banks have had predictive models for years. The interesting part was closing the loop operationally and actually tracking whether anybody followed through.</p>
   </div>
 
   <hr>
 
-  <div class="section-label">What agentic actually means</div>
+  <p>I've been describing it internally as agentic analytics, although I'm not sure anybody loves that term anymore. The basic idea is just that the system doesn't sit around waiting for somebody to think of the right question. It monitors the portfolio continuously, decides what matters, and pushes the issue toward action.</p>
 
-  <p>When I describe Sentinel, I call it an agentic analytics system. The distinction that matters: it doesn't wait for questions. It watches the portfolio, decides what's worth surfacing, and acts. Marcus stays in the loop where it counts — does he send the email, does he take the call. The system handles everything up to that point.</p>
+  <p>The RM still has to decide what to do with it. Nobody's removing that judgment layer.</p>
 
-  <hr>
-
-  <p>Two years ago, this demo wasn't possible. Not because the ideas were wrong — the pieces existed. What didn't exist was a platform where they could work together without a team of engineers building the plumbing from scratch.</p>
+  <p>A couple of years ago building something like this would've been messy. You would've had separate workflows stitched together with custom integration work everywhere. What's changed recently is that the platform pieces finally exist in one place — Tableau Next, Data 360, Agentforce, Slack, Einstein — without needing to glue everything together manually.</p>
 
   <hr>
 
-  <p>The room in San Diego was packed. Honestly, I wasn't sure how the opening would land — leading with a fictional RM's Tuesday morning felt like a risk.</p>
+  <p>I wasn't completely sure the fictional RM framing would work on stage. It felt a little different from the normal conference demo setup. But people recognized the situation immediately because most commercial bankers have seen some version of it before: a client slowly disengaging while all the signals technically already existed somewhere in the data.</p>
 
-  <p>It didn't need to. People recognized Coastal Logistics immediately. Not the specific company — the situation. A relationship that went quiet. A problem that surfaced too late. A dashboard that nobody checked because nobody knew they were supposed to.</p>
-
-  <p>That's the gap Sentinel was built to close. Not by replacing the relationship manager, but by making sure they never have to wonder what they're missing.</p>
-
-  <p><strong>Coastal Logistics is still a client. That's the point.</strong></p>
+  <p>That's really what Sentinel was trying to solve.</p>
 
 </div>
 
