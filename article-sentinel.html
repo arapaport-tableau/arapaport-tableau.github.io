@@ -407,6 +407,106 @@
       border: 0;
     }
 
+    /* ── ARCHITECTURE DIAGRAM ── */
+    .arch-diagram {
+      margin: 40px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-diagram::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.4), rgba(20,184,166,0.4), transparent);
+    }
+    .arch-title {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 28px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .arch-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .arch-phase-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--subtle); margin-bottom: 10px;
+    }
+
+    .arch-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 560px) { .arch-row { grid-template-columns: 1fr; } }
+
+    .arch-card {
+      border-radius: 12px; padding: 18px 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      position: relative;
+    }
+    .arch-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; bottom: 0; width: 3px;
+      border-radius: 12px 0 0 12px;
+    }
+    .arch-card.ac-blue   { border-color: rgba(59,130,246,0.3);  background: rgba(59,130,246,0.04); }
+    .arch-card.ac-indigo { border-color: rgba(99,102,241,0.3);  background: rgba(99,102,241,0.04); }
+    .arch-card.ac-teal   { border-color: rgba(20,184,166,0.3);  background: rgba(20,184,166,0.04); }
+    .arch-card.ac-yellow { border-color: rgba(236,178,46,0.3);  background: rgba(236,178,46,0.03); }
+    .arch-card.ac-purple { border-color: rgba(168,85,247,0.3);  background: rgba(168,85,247,0.04); }
+    .arch-card.ac-blue::before   { background: #3B82F6; }
+    .arch-card.ac-indigo::before { background: #6366F1; }
+    .arch-card.ac-teal::before   { background: #14B8A6; }
+    .arch-card.ac-yellow::before { background: #F59E0B; }
+    .arch-card.ac-purple::before { background: #A855F7; }
+
+    .arch-card-tag {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px; margin-bottom: 10px;
+    }
+    .ac-blue   .arch-card-tag { color: #60A5FA; background: rgba(59,130,246,0.12); }
+    .ac-indigo .arch-card-tag { color: #818CF8; background: rgba(99,102,241,0.12); }
+    .ac-teal   .arch-card-tag { color: #2DD4BF; background: rgba(20,184,166,0.12); }
+    .ac-yellow .arch-card-tag { color: #FBBF24; background: rgba(236,178,46,0.12); }
+    .ac-purple .arch-card-tag { color: #C084FC; background: rgba(168,85,247,0.12); }
+
+    .arch-card-name {
+      font-size: 14px; font-weight: 700;
+      letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 8px; color: var(--text);
+    }
+    .arch-card-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+    .arch-connector {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0 10px 22px; color: var(--subtle);
+    }
+    .arch-connector-line {
+      width: 1px; height: 24px; background: linear-gradient(to bottom, var(--border), rgba(99,102,241,0.3));
+      flex-shrink: 0;
+    }
+    .arch-connector-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      color: var(--subtle); font-style: italic;
+    }
+
+    .arch-funnel {
+      margin: 0; line-height: 0;
+    }
+    .arch-funnel svg line {
+      stroke: rgba(99,102,241,0.3); stroke-width: 1.5;
+    }
+    .arch-card.arch-full { margin-bottom: 0; }
+
+    .arch-note {
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--muted); line-height: 1.7;
+    }
+
     /* ── AUTHOR BIO ── */
     .article-bio {
       max-width: 680px;
@@ -648,6 +748,89 @@
   <p>I wasn't completely sure the fictional RM framing would work on stage. It felt a little different from the normal conference demo setup. But people recognized the situation immediately because most commercial bankers have seen some version of it before: a client slowly disengaging while all the signals technically already existed somewhere in the data.</p>
 
   <p>That's really what Sentinel was trying to solve.</p>
+
+  <hr>
+
+  <p>A few people have asked how the pieces actually connect, so here's the technical rundown for anyone who wants to understand or replicate it.</p>
+
+  <div class="arch-diagram">
+    <div class="arch-title">Sentinel — system architecture</div>
+
+    <!-- Phase 1: Data Sources -->
+    <div class="arch-phase-label">Data sources</div>
+    <div class="arch-row">
+      <div class="arch-card ac-blue">
+        <div class="arch-card-tag">Salesforce</div>
+        <div class="arch-card-name">CRM & Data Cloud</div>
+        <div class="arch-card-desc">Relationship records, activity history, contact frequency, and engagement signals.</div>
+      </div>
+      <div class="arch-card ac-blue">
+        <div class="arch-card-tag">Zero Copy</div>
+        <div class="arch-card-name">External data warehouses</div>
+        <div class="arch-card-desc">Core banking, treasury management, billing — data stays in the external warehouse and is exposed to Data Cloud via Zero Copy, no replication needed.</div>
+      </div>
+    </div>
+
+    <div class="arch-funnel">
+      <svg viewBox="0 0 400 32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="width:100%;height:32px;display:block;">
+        <line x1="100" y1="0" x2="200" y2="32"/>
+        <line x1="300" y1="0" x2="200" y2="32"/>
+      </svg>
+    </div>
+
+    <div class="arch-card ac-indigo arch-full">
+      <div class="arch-card-tag">Semantic layer</div>
+      <div class="arch-card-name">Enriched model</div>
+      <div class="arch-card-desc">Risk model outputs from the data warehouse, joined with CRM signals, transaction history, and engagement data. Everything downstream — Agentforce, Einstein Prompts — queries here.</div>
+    </div>
+
+    <div class="arch-connector">
+      <div class="arch-connector-line"></div>
+      <span class="arch-connector-label">runs overnight</span>
+    </div>
+
+    <!-- Phase 2: Pipeline -->
+    <div class="arch-phase-label">Pipeline</div>
+    <div class="arch-card ac-teal">
+      <div class="arch-card-tag">Agentforce</div>
+      <div class="arch-card-name">Scheduled action</div>
+      <div class="arch-card-desc">Fires on a nightly schedule. Triggers a Flow containing an Apex class query that runs against the semantic model and checks each relationship against the risk threshold.</div>
+    </div>
+
+    <div class="arch-connector">
+      <div class="arch-connector-line"></div>
+      <span class="arch-connector-label">threshold crossed</span>
+    </div>
+
+    <!-- Phase 3: Output -->
+    <div class="arch-phase-label">Output</div>
+    <div class="arch-row">
+      <div class="arch-card ac-yellow">
+        <div class="arch-card-tag">Slack</div>
+        <div class="arch-card-name">RM alert</div>
+        <div class="arch-card-desc">Flow formats the query output and pushes directly to the RM's channel — risk score, deposit trend, TM activity, days since last contact, revenue at risk.</div>
+      </div>
+      <div class="arch-card ac-purple">
+        <div class="arch-card-tag">Einstein Prompts</div>
+        <div class="arch-card-name">Generated content</div>
+        <div class="arch-card-desc">Templates query the semantic model directly. Outreach email and call prep document generated from client context — no additional data sources.</div>
+      </div>
+    </div>
+
+    <div class="arch-note">Manager escalation runs the same pipeline on a separate schedule — rolling up unresolved alerts across the team and escalating automatically if nothing's been acted on.</div>
+  </div>
+
+  <p>The data lives in Data 360. In a real deployment you'd be pulling from a combination of Salesforce CRM and external platforms — core banking, treasury management, billing — ideally through Zero Copy so you're not maintaining duplicate copies of data that already lives somewhere else.</p>
+
+  <p>The risk scoring itself isn't something Sentinel is doing. The assumption is that a data science team has already built that model — it outputs attrition risk scores for each relationship and writes them to a table in the data warehouse. The semantic layer picks those up and enriches them with engagement history, transaction trends, contact frequency. That combined view is what everything downstream queries against.</p>
+
+  <p>The overnight scan is a scheduled Agentforce action. It fires a Flow that has a query embedded in an Apex class, which runs against the semantic model. When a client crosses the risk threshold, the agent triggers another Flow that takes the query output, formats it, and pushes it to Slack as the alert the RM sees in the morning.</p>
+
+  <p>The outreach email and call prep document are Einstein Prompt templates — both querying the semantic model directly. No separate lookups, no additional data sources. The prompt gets the client context and generates the content from it.</p>
+
+  <p>The manager escalation is the same pattern. Scheduled action, Flow, query against the semantic model — but instead of individual client alerts it's rolling up unresolved risk across the team. Anything that's been sitting too long escalates automatically.</p>
+
+  <p>The whole thing is more orchestration than AI. The intelligence is in the scoring model the data science team built. Agentforce and the Flows are just the delivery mechanism — making sure the output actually reaches the person who needs to act on it.</p>
 
 </div>
 
