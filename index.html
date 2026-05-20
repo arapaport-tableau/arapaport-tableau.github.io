@@ -109,17 +109,20 @@
 
     .theme-toggle {
       margin-left: 28px;
-      width: 36px; height: 36px;
+      width: 40px; height: 40px;
       border-radius: 50%;
-      border: 1px solid var(--border);
-      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
+      font-size: 18px;
       transition: background 0.2s, border-color 0.2s;
     }
 
-    .theme-toggle:hover { background: var(--surface-hover); border-color: var(--border-hover); }
+    [data-theme="light"] .theme-toggle { border-color: rgba(0,0,0,0.15); background: rgba(0,0,0,0.04); }
+
+    .theme-toggle:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.25); }
 
     /* ── HERO ── */
     .hero {
@@ -312,11 +315,10 @@
     /* ── TOOLS ── */
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
     }
 
-    @media (max-width: 880px) { .tools-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px) { .tools-grid { grid-template-columns: 1fr; } }
 
     .tool-card {
@@ -537,11 +539,11 @@
 <nav>
   <a href="#top" class="nav-logo">Andy<span>.</span></a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#tools" data-section="tools">Tools</a></li>
     <li><a href="#writing" data-section="writing">Writing</a></li>
+    <li><a href="#tools" data-section="tools">Tools</a></li>
     <li><a href="#about" data-section="about">About</a></li>
   </ul>
-  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light/dark theme">🌙</button>
   <button class="nav-hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -561,8 +563,8 @@
     <p class="hero-role">Principal Solution Engineer · <strong>Salesforce</strong></p>
     <p class="hero-bio">I work with some of the largest banks to build solutions around analytics, data, and AI. This site is where I share the tools and thinking that come out of that work.</p>
     <div class="hero-actions">
-      <a href="https://www.linkedin.com/in/andrew-rapaport/" class="btn-primary" target="_blank">LinkedIn</a>
-      <a href="https://github.com/arapaport-tableau" class="btn-ghost" target="_blank">GitHub</a>
+      <a href="https://www.linkedin.com/in/andrew-rapaport/" class="btn-primary" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="https://github.com/arapaport-tableau" class="btn-ghost" target="_blank" rel="noopener">GitHub ↗</a>
     </div>
   </div>
   <a href="#featured" class="scroll-cue">
@@ -594,76 +596,19 @@
           <span class="featured-arrow">↗</span>
         </div>
       </a>
-      <a href="article-demo-builder.html" class="featured-card reveal reveal-delay-3">
+      <a href="article-sentinel.html" class="featured-card reveal reveal-delay-3">
         <div class="featured-type">Writing · May 2026</div>
-        <h3>How I Cut Demo Prep Time from 2 Weeks to 2 Hours</h3>
-        <p>How automating the build pipeline cut demo prep from two weeks to a few hours — and what that made possible.</p>
+        <h3>A Client Doesn't Announce When They're Leaving</h3>
+        <p>What I built for Tableau Conference — and why it's the same problem I was still trying to solve when I left PNC in 2021.</p>
         <div class="featured-footer">
           <div class="tag-row">
+            <span class="tag t-agentic">Agentic Analytics</span>
             <span class="tag t-tableau">Tableau</span>
             <span class="tag t-sf">Salesforce</span>
-            <span class="tag t-ai">AI</span>
-            <span class="tag t-demo">Demo Engineering</span>
           </div>
           <span class="featured-arrow">↗</span>
         </div>
       </a>
-      <a href="https://arapaport-tableau.github.io/Tableau-Next-Claude-Skills/" class="featured-card reveal reveal-delay-4" target="_blank">
-        <div class="featured-type">Tool</div>
-        <h3>Tableau Next Demo Builder</h3>
-        <p>Build complete, realistic Tableau Next demos end-to-end from plain English. Describe the prospect, the persona, and the story — Claude handles the rest in under 2 hours.</p>
-        <div class="featured-footer">
-          <div class="tag-row">
-            <span class="tag t-tableau">Tableau</span>
-            <span class="tag t-sf">Salesforce</span>
-            <span class="tag t-demo">Demo Engineering</span>
-          </div>
-          <span class="featured-arrow">↗</span>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
-<!-- TOOLS -->
-<section id="tools">
-  <div class="container">
-    <div class="section-eyebrow reveal">Tools</div>
-    <h2 class="section-title reveal reveal-delay-1">Things I've built</h2>
-    <p class="section-sub reveal reveal-delay-2">Open-source tools for Tableau Solutions Engineers, built with Claude Code.</p>
-    <div class="tools-grid">
-      <a href="https://arapaport-tableau.github.io/Tableau-Next-Claude-Skills/" class="tool-card reveal reveal-delay-1" target="_blank">
-        <div class="tool-icon">⚡</div>
-        <h3>Tableau Next Demo Builder</h3>
-        <p>End-to-end Tableau Next demos — semantic model, Concierge AI, visualizations, and dashboard — from plain English.</p>
-        <div class="tool-footer">
-          <div class="tag-row">
-            <span class="tag t-tableau">Tableau</span>
-            <span class="tag t-sf">Salesforce</span>
-          </div>
-          <span class="tool-link">View →</span>
-        </div>
-      </a>
-      <div class="tool-card coming-soon reveal reveal-delay-2">
-        <div class="tool-icon">📊</div>
-        <h3>Tableau Pulse Demo Builder</h3>
-        <p>Automated Pulse metric demos with synthetic data, engineered signals, and group subscriptions.</p>
-        <div class="tool-footer">
-          <div class="tag-row"><span class="tag t-tableau">Tableau</span></div>
-          <span class="tool-soon">Coming soon</span>
-        </div>
-      </div>
-      <div class="tool-card coming-soon reveal reveal-delay-3">
-        <div class="tool-icon">🔮</div>
-        <h3>More coming</h3>
-        <p>New tools as they get built. Follow on GitHub to see what's next.</p>
-        <div class="tool-footer">
-          <div class="tag-row"></div>
-          <span class="tool-soon">Stay tuned</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -701,20 +646,6 @@
           <span class="post-arrow">↗</span>
         </div>
       </a>
-      <a href="article-demo-builder.html" class="post-card reveal reveal-delay-2" data-topics="tableau salesforce ai demo">
-        <div class="post-meta"><span class="post-date">May 2026 · 6 min read</span></div>
-        <h3>How I Cut Demo Prep Time from 2 Weeks to 2 Hours</h3>
-        <p>How automating the build pipeline cut demo prep from two weeks to a few hours — and what that made possible.</p>
-        <div class="post-footer">
-          <div class="tag-row">
-            <span class="tag t-tableau">Tableau</span>
-            <span class="tag t-sf">Salesforce</span>
-            <span class="tag t-ai">AI</span>
-            <span class="tag t-demo">Demo Engineering</span>
-          </div>
-          <span class="post-arrow">↗</span>
-        </div>
-      </a>
       <a href="article-sentinel.html" class="post-card reveal reveal-delay-3" data-topics="agentic tableau salesforce">
         <div class="post-meta"><span class="post-date">May 2026 · 7 min read</span></div>
         <h3>A Client Doesn't Announce When They're Leaving</h3>
@@ -728,6 +659,28 @@
           <span class="post-arrow">↗</span>
         </div>
       </a>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="container">
+    <div class="section-eyebrow reveal">Tools</div>
+    <h2 class="section-title reveal reveal-delay-1">Things I've built</h2>
+    <p class="section-sub reveal reveal-delay-2">Open-source tools for Tableau Solutions Engineers, built with Claude Code.</p>
+    <div class="tools-grid">
+      <div class="tool-card coming-soon reveal reveal-delay-2">
+        <div class="tool-icon">📊</div>
+        <h3>Tableau Pulse Demo Builder</h3>
+        <p>Automated Pulse metric demos with synthetic data, engineered signals, and group subscriptions.</p>
+        <div class="tool-footer">
+          <div class="tag-row"><span class="tag t-tableau">Tableau</span></div>
+          <span class="tool-soon">Coming soon</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -764,11 +717,11 @@
     <div class="footer-tagline">Principal Solution Engineer · Salesforce</div>
     <div class="footer-tagline">Opinions are my own.</div>
   </div>
-  <nav class="footer-links">
-    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
-    <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+  <div class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank" rel="noopener">GitHub ↗</a>
     <a href="#top">Back to top ↑</a>
-  </nav>
+  </div>
 </footer>
 
 <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
@@ -810,7 +763,7 @@
   });
 
   // Active nav scroll spy
-  const sections = ['tools','writing','about'].map(id => document.getElementById(id));
+  const sections = ['writing','tools','about'].map(id => document.getElementById(id));
   const navAnchors = document.querySelectorAll('.nav-links a[data-section]');
   const sectionObserver = new IntersectionObserver(entries => {
     entries.forEach(e => {

@@ -96,7 +96,7 @@
       color: var(--text);
       text-decoration: none;
       letter-spacing: -0.03em;
-      margin-right: auto;
+      margin-right: 16px;
     }
 
     .nav-logo span { color: var(--indigo); }
@@ -110,9 +110,13 @@
       align-items: center;
       gap: 6px;
       transition: color 0.2s;
+      margin-right: auto;
     }
 
     .nav-back:hover { color: var(--text); }
+
+    .nav-link { font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; transition:color 0.2s; margin-left:24px; }
+    .nav-link:hover { color:var(--text); }
 
     .theme-toggle {
       margin-left: 24px;
@@ -642,7 +646,9 @@
 <nav>
   <a href="index.html" class="nav-logo">Andy<span>.</span></a>
   <a href="index.html#writing" class="nav-back">← All writing</a>
-  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <a href="index.html#tools" class="nav-link">Tools</a>
+  <a href="index.html#about" class="nav-link">About</a>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light/dark theme">🌙</button>
 </nav>
 
 <!-- ARTICLE HEADER -->
@@ -880,11 +886,11 @@
     <div class="footer-tagline">Building AI-native analytics, one demo at a time.</div>
     <div class="footer-tagline">Opinions are my own.</div>
   </div>
-  <nav class="footer-links">
-    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
-    <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+  <div class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank" rel="noopener">GitHub ↗</a>
     <a href="index.html">Home</a>
-  </nav>
+  </div>
 </footer>
 
 <script>
@@ -909,7 +915,7 @@
 
   // Keyboard shortcut: D = toggle theme
   document.addEventListener('keydown', e => {
-    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) toggleTheme();
+    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey && document.activeElement.tagName !== 'INPUT') toggleTheme();
   });
 
   // Copy link with UTM

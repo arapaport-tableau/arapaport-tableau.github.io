@@ -84,18 +84,20 @@
 
     [data-theme="light"] nav { background: rgba(248,250,252,0.85); }
 
-    .nav-logo { font-size:16px; font-weight:800; color:var(--text); text-decoration:none; letter-spacing:-0.03em; margin-right:auto; }
+    .nav-logo { font-size:16px; font-weight:800; color:var(--text); text-decoration:none; letter-spacing:-0.03em; margin-right:16px; }
     .nav-logo span { color:var(--indigo); }
-    .nav-back { font-size:13px; font-weight:600; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+    .nav-back { font-size:13px; font-weight:600; color:var(--muted); text-decoration:none; transition:color 0.2s; margin-right:auto; }
     .nav-back:hover { color:var(--text); }
-    .theme-toggle { margin-left:20px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s, border-color 0.2s; }
+    .nav-link { font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; transition:color 0.2s; margin-left:24px; }
+    .nav-link:hover { color:var(--text); }
+    .theme-toggle { margin-left:24px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s, border-color 0.2s; }
     .theme-toggle:hover { background:var(--surface-hover); border-color:var(--border-hover); }
 
     /* ── ARTICLE ── */
     .article-header {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
-      padding: 140px 24px 48px;
+      padding: calc(var(--nav-h) + 72px) 24px 56px;
       animation: fadeUp 0.7s ease;
     }
 
@@ -140,7 +142,7 @@
     .meta-read { font-size:12px; color:var(--muted); }
 
     .article-body {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       padding: 0 24px 64px;
     }
@@ -280,13 +282,13 @@
 
     /* ── AUTHOR BIO ── */
     .article-bio {
-      max-width: 680px; margin: 0 auto 80px;
+      max-width: 720px; margin: 0 auto 80px;
       padding: 32px; background: var(--surface);
       border: 1px solid var(--border); border-radius: 16px;
       display: flex; gap: 20px; align-items: flex-start;
       margin-left: 24px; margin-right: 24px;
     }
-    @media (max-width: 680px) { .article-bio { flex-direction: column; } }
+    @media (max-width: 720px) { .article-bio { flex-direction: column; } }
     .bio-avatar { width:56px; height:56px; border-radius:50%; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
     .bio-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
     .bio-body h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
@@ -298,7 +300,7 @@
 
     /* ── SHARE BAR ── */
     .share-bar {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto 32px;
       padding: 0 24px;
       display: flex;
@@ -339,7 +341,7 @@
 
     /* ── RELATED ARTICLES ── */
     .related-section {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto 48px;
       padding: 0 24px;
     }
@@ -352,6 +354,13 @@
       color: var(--muted);
       margin-bottom: 16px;
     }
+
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) { .related-grid { grid-template-columns: 1fr; } }
 
     .related-card {
       display: block;
@@ -387,7 +396,9 @@
 <nav>
   <a href="index.html" class="nav-logo">Andy<span>.</span></a>
   <a href="index.html#writing" class="nav-back">&larr; All writing</a>
-  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">&#127769;</button>
+  <a href="index.html#tools" class="nav-link">Tools</a>
+  <a href="index.html#about" class="nav-link">About</a>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light/dark theme">&#127769;</button>
 </nav>
 
 <!-- ARTICLE HEADER -->
@@ -550,12 +561,20 @@
 <!-- RELATED ARTICLES -->
 <div class="related-section">
   <div class="related-label">Continue reading</div>
-  <a href="article-demo-builder.html" class="related-card">
-    <div class="related-card-meta">Demo Engineering &middot; 6 min read</div>
-    <div class="related-card-title">How I Cut Demo Prep Time from 2 Weeks to 2 Hours</div>
-    <div class="related-card-excerpt">How automating the build pipeline cut demo prep from two weeks to a few hours, and what that made possible.</div>
-    <div class="related-card-arrow">Read article &rarr;</div>
-  </a>
+  <div class="related-grid">
+    <a href="article-sentinel.html" class="related-card">
+      <div class="related-card-meta">Agentic Analytics &middot; 7 min read</div>
+      <div class="related-card-title">A Client Doesn't Announce When They're Leaving</div>
+      <div class="related-card-excerpt">What I built for Tableau Conference — and why it's the same problem I was still trying to solve when I left PNC in 2021.</div>
+      <div class="related-card-arrow">Read article &rarr;</div>
+    </a>
+    <a href="article-demo-builder.html" class="related-card">
+      <div class="related-card-meta">Demo Engineering &middot; 6 min read</div>
+      <div class="related-card-title">How I Cut Demo Prep Time from 2 Weeks to 2 Hours</div>
+      <div class="related-card-excerpt">How automating the build pipeline cut demo prep from two weeks to a few hours, and what that made possible.</div>
+      <div class="related-card-arrow">Read article &rarr;</div>
+    </a>
+  </div>
 </div>
 
 <!-- AUTHOR BIO -->
@@ -579,11 +598,11 @@
     <div class="footer-name">Andy Rapaport</div>
     <div class="footer-tagline">Opinions are my own.</div>
   </div>
-  <nav class="footer-links">
-    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
-    <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+  <div class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank" rel="noopener">GitHub ↗</a>
     <a href="index.html#top">Home</a>
-  </nav>
+  </div>
 </footer>
 
 <script>
@@ -606,7 +625,7 @@
   });
 
   document.addEventListener('keydown', e => {
-    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) toggleTheme();
+    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey && document.activeElement.tagName !== 'INPUT') toggleTheme();
   });
 
   function copyLink() {
