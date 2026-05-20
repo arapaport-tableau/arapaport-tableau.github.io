@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Headless Analytics Trap — Andy Rapaport</title>
+  <meta name="description" content="AI made it easy to build a dashboard. But a dashboard isn't an analytics platform. And the distance between those two things is where organizations get into trouble.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://andyrapaport.com/article-headless-analytics.html">
+  <meta property="og:title" content="The Headless Analytics Trap">
+  <meta property="og:description" content="AI made it easy to build a dashboard. But a dashboard isn't an analytics platform. And the distance between those two things is where organizations get into trouble.">
+  <meta property="og:image" content="https://andyrapaport.com/og-image.png">
+  <meta property="og:site_name" content="Andy Rapaport">
+  <meta property="article:author" content="Andy Rapaport">
+  <meta property="article:published_time" content="2026-05-20">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Headless Analytics Trap">
+  <meta name="twitter:description" content="AI made it easy to build a dashboard. But a dashboard isn't an analytics platform. And the distance between those two things is where organizations get into trouble.">
+  <meta name="twitter:image" content="https://andyrapaport.com/og-image.png">
+
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --surface: rgba(255,255,255,0.03);
+      --surface-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.16);
+      --text: #F1F5F9;
+      --muted: #64748B;
+      --subtle: #334155;
+      --indigo: #6366F1;
+      --teal: #14B8A6;
+      --purple: #A855F7;
+      --green: #22C55E;
+      --nav-h: 64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    [data-theme="light"] {
+      --bg: #F8FAFC;
+      --surface: rgba(0,0,0,0.025);
+      --surface-hover: rgba(0,0,0,0.05);
+      --border: rgba(0,0,0,0.09);
+      --border-hover: rgba(0,0,0,0.18);
+      --text: #0F172A;
+      --muted: #64748B;
+      --subtle: #94A3B8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── READING PROGRESS ── */
+    .reading-progress {
+      position: fixed; top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: linear-gradient(90deg, #6366F1, #14B8A6, #A855F7);
+      z-index: 200; transition: width 0.1s linear;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h); z-index: 100;
+      display: flex; align-items: center; padding: 0 40px;
+      background: rgba(8,8,8,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="light"] nav { background: rgba(248,250,252,0.85); }
+
+    .nav-logo { font-size:16px; font-weight:800; color:var(--text); text-decoration:none; letter-spacing:-0.03em; margin-right:auto; }
+    .nav-logo span { color:var(--indigo); }
+    .nav-back { font-size:13px; font-weight:600; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+    .nav-back:hover { color:var(--text); }
+    .theme-toggle { margin-left:20px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s, border-color 0.2s; }
+    .theme-toggle:hover { background:var(--surface-hover); border-color:var(--border-hover); }
+
+    /* ── ARTICLE ── */
+    .article-header {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 140px 24px 48px;
+      animation: fadeUp 0.7s ease;
+    }
+
+    .article-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+    .tag { display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:var(--surface); white-space:nowrap; }
+    .tag.t-tableau { border-color:rgba(99,102,241,0.3); color:#818CF8; background:rgba(99,102,241,0.06); }
+    .tag.t-ai { border-color:rgba(20,184,166,0.3); color:#2DD4BF; background:rgba(20,184,166,0.06); }
+    .tag.t-sf { border-color:rgba(59,130,246,0.3); color:#60A5FA; background:rgba(59,130,246,0.06); }
+    .tag.t-agentic { border-color:rgba(168,85,247,0.3); color:#C084FC; background:rgba(168,85,247,0.06); }
+    .tag.t-demo { border-color:rgba(34,197,94,0.3); color:#4ADE80; background:rgba(34,197,94,0.06); }
+
+    .article-title {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .article-deck {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-avatar { width:40px; height:40px; border-radius:50%; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
+    .meta-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+    .meta-body { flex:1; }
+    .meta-name { font-size:14px; font-weight:700; }
+    .meta-details { font-size:12px; color:var(--muted); }
+    .meta-right { text-align:right; }
+    .meta-date { font-size:13px; font-weight:600; }
+    .meta-read { font-size:12px; color:var(--muted); }
+
+    .article-body {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px 64px;
+    }
+
+    .article-body p {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.85;
+      margin-bottom: 24px;
+    }
+
+    .article-body h2 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-top: 56px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .article-body hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 48px 0;
+    }
+
+    .article-body a { color: var(--indigo); text-decoration: underline; text-underline-offset: 3px; }
+    .article-body a:hover { color: #818CF8; }
+
+    .article-body ul, .article-body ol {
+      margin-bottom: 24px;
+      padding-left: 24px;
+    }
+
+    .article-body li {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.85;
+      margin-bottom: 8px;
+    }
+
+    .pull-quote {
+      border-left: 3px solid var(--indigo);
+      padding: 16px 24px;
+      margin: 40px 0;
+      background: var(--surface);
+      border-radius: 0 12px 12px 0;
+    }
+
+    .pull-quote p {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    /* ── VISUAL: ICEBERG ── */
+    .iceberg-wrap {
+      margin: 40px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+
+    .iceberg-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .iceberg-section {
+      margin-bottom: 16px;
+    }
+
+    .iceberg-header {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .iceberg-header.visible-part { color: #2DD4BF; }
+    .iceberg-header.hidden-part { color: #818CF8; }
+
+    .iceberg-divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+      margin: 16px 0;
+      position: relative;
+    }
+
+    .iceberg-divider::after {
+      content: 'waterline';
+      position: absolute;
+      right: 0;
+      top: -8px;
+      font-size: 10px;
+      color: var(--subtle);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .iceberg-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .iceberg-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .pill-visible { background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.25); color: #2DD4BF; }
+    .pill-hidden { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #818CF8; }
+
+    .iceberg-desc {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── AUTHOR BIO ── */
+    .article-bio {
+      max-width: 680px; margin: 0 auto 80px;
+      padding: 32px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 16px;
+      display: flex; gap: 20px; align-items: flex-start;
+      margin-left: 24px; margin-right: 24px;
+    }
+    @media (max-width: 680px) { .article-bio { flex-direction: column; } }
+    .bio-avatar { width:56px; height:56px; border-radius:50%; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
+    .bio-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+    .bio-body h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+    .bio-body .bio-role { font-size:12px; color:var(--indigo); font-weight:600; margin-bottom:10px; }
+    .bio-body p { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:12px; }
+    .bio-links { display:flex; gap:16px; }
+    .bio-links a { font-size:12px; font-weight:600; color:var(--indigo); text-decoration:none; }
+    .bio-links a:hover { color:#818CF8; }
+
+    /* ── SHARE BAR ── */
+    .share-bar {
+      max-width: 680px;
+      margin: 0 auto 32px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .share-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 6px;
+    }
+
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      font-family: inherit;
+    }
+
+    .share-btn:hover { background: var(--surface-hover); border-color: var(--border-hover); color: var(--text); }
+    .share-linkedin:hover { border-color: rgba(99,102,241,0.35); color: #818CF8; }
+    .share-copy.copied { border-color: rgba(20,184,166,0.35); color: #2DD4BF; }
+
+    /* ── RELATED ARTICLES ── */
+    .related-section {
+      max-width: 680px;
+      margin: 0 auto 48px;
+      padding: 0 24px;
+    }
+
+    .related-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .related-card {
+      display: block;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .related-card:hover { background: var(--surface-hover); border-color: var(--border-hover); }
+    .related-card-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .related-card-title { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 8px; }
+    .related-card-excerpt { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+    .related-card-arrow { font-size: 13px; font-weight: 600; color: var(--indigo); }
+
+    /* ── FOOTER ── */
+    footer { padding:36px 40px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+    .footer-name { font-size:14px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+    .footer-tagline { font-size:12px; color:var(--muted); }
+    .footer-links { display:flex; gap:24px; }
+    .footer-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--text); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<div class="reading-progress" id="readingProgress"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Andy<span>.</span></a>
+  <a href="index.html#writing" class="nav-back">&larr; All writing</a>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">&#127769;</button>
+</nav>
+
+<!-- ARTICLE HEADER -->
+<div class="article-header">
+  <div class="article-tags">
+    <span class="tag t-ai">AI</span>
+    <span class="tag t-tableau">Tableau</span>
+    <span class="tag t-sf">Salesforce</span>
+    <span class="tag t-agentic">Agentic Analytics</span>
+  </div>
+  <h1 class="article-title">The Headless Analytics Trap</h1>
+  <p class="article-deck">AI made it easy to build a dashboard. But a dashboard isn't an analytics platform. And the distance between those two things is where organizations get into trouble.</p>
+  <div class="article-meta">
+    <div class="meta-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+    <div class="meta-body">
+      <div class="meta-name">Andy Rapaport</div>
+      <div class="meta-details">Principal Solution Engineer &middot; Salesforce</div>
+    </div>
+    <div class="meta-right">
+      <div class="meta-date">May 2026</div>
+      <div class="meta-read">7 min read</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE BODY -->
+<div class="article-body">
+
+  <p>I was in a conversation recently where someone told me their team was planning to cut their analytics platform because they'd figured out how to generate dashboards with AI. Custom components, pulling directly from their warehouse, deployed internally. They were genuinely proud of it. And honestly, the output looked fine.</p>
+
+  <p>My first question was: who else can see this data?</p>
+
+  <p>Silence.</p>
+
+  <p>This keeps coming up. The word "headless" used to be a developer term. CMS architecture, API-first design, that sort of thing. Now I'm hearing it from analytics leaders and banking executives who have never written code but are suddenly confident they can replace their platform with something AI built over a weekend.</p>
+
+  <p>I get why. The first 80% of building something with AI feels like magic. You describe what you want and it appears. A chart. A report that pulls from your warehouse and emails itself every Monday. It works. You show it to your boss and everyone's impressed.</p>
+
+  <hr>
+
+  <p>I spent 11 years at PNC before joining Salesforce. Analytics and data roles, mostly. I watched teams build internal tools the entire time I was there. Some were good. Most started strong and slowly became burdens that nobody wanted to maintain but everyone depended on.</p>
+
+  <p>The pattern was always the same. Someone with initiative builds a thing. The thing works. Other people start using it. Then it needs access controls. Then it needs to handle edge cases. Then someone leaves and nobody knows how it works internally. Then it breaks during an audit and suddenly there's a six-month project to replace it with something "enterprise-grade."</p>
+
+  <p>That cycle used to take two or three years to play out. With AI-generated code, I think it takes about 18 months. Maybe less.</p>
+
+  <div class="pull-quote">
+    <p>The bottleneck was never building the dashboard. It was everything underneath it that nobody wanted to think about.</p>
+  </div>
+
+  <hr>
+
+  <h2>The 80/20 illusion</h2>
+
+  <p>What's hard to explain to someone who just watched Claude or Copilot generate a working analytics app in an afternoon is that what they built was the cheap part. The output is real. It works. But it was never the expensive problem to solve.</p>
+
+  <p>The expensive problems in enterprise analytics have always been things like: who can see what data, and how do you enforce that consistently across every surface where it appears? When two reports both say "revenue," are they calculating it the same way? Where did a number come from and can you prove that to a regulator? What happens when you have 400 dashboards and the schema changes on a Tuesday?</p>
+
+  <p>Nobody talks about that stuff in demos. It's not exciting. But it's the reason platforms exist, and it doesn't get generated when you tell an AI to "build me a dashboard that shows portfolio performance by region."</p>
+
+  <!-- ICEBERG VISUAL -->
+  <div class="iceberg-wrap">
+    <div class="iceberg-label">What you see vs. what you need</div>
+    <div class="iceberg-section">
+      <div class="iceberg-header visible-part">&#9650; What AI generates easily</div>
+      <div class="iceberg-items">
+        <span class="iceberg-pill pill-visible">Charts</span>
+        <span class="iceberg-pill pill-visible">Dashboards</span>
+        <span class="iceberg-pill pill-visible">Data pipelines</span>
+        <span class="iceberg-pill pill-visible">Reports</span>
+        <span class="iceberg-pill pill-visible">Alerts</span>
+      </div>
+    </div>
+    <div class="iceberg-divider"></div>
+    <div class="iceberg-section">
+      <div class="iceberg-header hidden-part">&#9660; What a platform handles for you</div>
+      <div class="iceberg-items">
+        <span class="iceberg-pill pill-hidden">Row-level security</span>
+        <span class="iceberg-pill pill-hidden">Semantic layer</span>
+        <span class="iceberg-pill pill-hidden">Data governance</span>
+        <span class="iceberg-pill pill-hidden">Audit trails</span>
+        <span class="iceberg-pill pill-hidden">Access management</span>
+        <span class="iceberg-pill pill-hidden">Schema change handling</span>
+        <span class="iceberg-pill pill-hidden">Performance at scale</span>
+        <span class="iceberg-pill pill-hidden">Version control</span>
+        <span class="iceberg-pill pill-hidden">Compliance certification</span>
+        <span class="iceberg-pill pill-hidden">Multi-tenant isolation</span>
+      </div>
+    </div>
+    <p class="iceberg-desc">The visible layer is what gets built in a weekend. The hidden layer is what takes years to harden and what regulators ask about.</p>
+  </div>
+
+  <hr>
+
+  <h2>What "headless" should actually mean</h2>
+
+  <p>People hear "headless" and think it means "I don't need the platform anymore." That's backwards. Headless means: keep the platform, lose the constraint of a single prescribed UI.</p>
+
+  <p>A governed analytics platform gives you the semantic layer, the security model, the data management, the lineage. Headless means you consume all of that through APIs and surface it however you want. Embedded in your app. In a Slack bot. In an agent workflow. In something an AI generated for a very specific use case that only three people will ever look at.</p>
+
+  <p>The platform still handles the hard problems. The presentation layer becomes flexible. That's a better outcome than what most organizations have today. But the trap is when people look at the flexibility of the presentation layer and conclude they don't need what's underneath it. They're confusing the UI for the product.</p>
+
+  <div class="pull-quote">
+    <p>Headless doesn't mean platformless. It means the platform gets out of the way of how you consume insights while still handling everything that makes those insights trustworthy.</p>
+  </div>
+
+  <hr>
+
+  <h2>The technical debt clock is already running</h2>
+
+  <p>I'm hearing anecdotally about organizations that went down this path early. Built custom analytics components with AI. Replaced dashboards with generated alternatives. Saved money in the short term. And now, roughly a year later, they're staring at a maintenance problem that's growing faster than their team can keep up with.</p>
+
+  <p>The economics make sense at first. You cut a platform license. You build something "good enough" internally. The AI-generated code works. But six months in, someone needs to modify the access controls. The person who prompted the original build has moved teams. The schema changed and three of the twelve components broke silently. Nobody noticed for two weeks because there's no monitoring, no alerting, no governance layer watching for drift.</p>
+
+  <p>Eventually the total cost of maintaining the custom solution exceeds what the platform cost in the first place. I watched this happen with hand-coded solutions over 11 years at the bank. The only difference now is that AI compresses the cycle. You accumulate technical debt faster because you can build faster.</p>
+
+  <hr>
+
+  <h2>Where the stakes are different</h2>
+
+  <p>If you're a bank, or in healthcare, or in any regulated industry where someone will eventually ask you to prove where a number came from, who had access to it, and whether the logic was applied consistently across every consumer of that data, you need the platform layer. Not because the UI is special. Because everything below the UI is what keeps you out of trouble.</p>
+
+  <p>The question was never "can I build a dashboard with AI?" Of course you can. The question is whether you can govern, secure, maintain, audit, and scale what you built across hundreds of users and thousands of data assets for the next five years. That's a completely different problem. And it's the problem that platforms were built to solve.</p>
+
+  <hr>
+
+  <h2>The better question</h2>
+
+  <p>I think the conversation that should be happening is: "How do I get the flexibility of AI-generated interfaces on top of a foundation I can trust?"</p>
+
+  <p>The semantic layer defines what "revenue" means once. Every surface that consumes it, whether it's a Tableau dashboard, a Slack alert, an embedded component, or something an AI built for one specific person, uses that same governed definition. Row-level security follows the data everywhere it goes. Lineage is tracked. The hard stuff is handled once at the platform level and the easy stuff becomes as flexible as you want it to be.</p>
+
+  <p>That's better than either extreme. Better than "everyone uses the same rigid dashboards" and better than "everyone builds their own ungoverned thing from scratch."</p>
+
+  <p>But it requires keeping the foundation in place. And right now, a lot of organizations are being tempted to tear up the foundation because the part they can see, the UI layer, became easy to replicate overnight.</p>
+
+  <hr>
+
+  <p>I'm not saying experimentation is wrong. Build things. Try stuff. But before you rip out the platform, ask yourself:</p>
+
+  <p>Who maintains this when the person who built it leaves? How do you enforce access controls consistently across every generated component? What happens when a regulator asks for lineage on a number that showed up in a board report? What's your plan when you have 50 of these things and the schema changes?</p>
+
+  <p>If you have good answers, great. If the answer is "we'll figure it out later," you're probably about 18 months away from buying a platform again.</p>
+
+</div>
+
+<!-- SHARE BAR -->
+<div class="share-bar">
+  <span class="share-label">Share</span>
+  <a class="share-btn share-linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fandyrapaport.com%2Farticle-headless-analytics.html%3Futm_source%3Dlinkedin%26utm_medium%3Dsocial%26utm_campaign%3Dpost" target="_blank" rel="noopener">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.222 0h.003z"/></svg>
+    LinkedIn
+  </a>
+  <button class="share-btn share-copy" id="copyBtn" onclick="copyLink()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span id="copyLabel">Copy link</span>
+  </button>
+</div>
+
+<!-- RELATED ARTICLES -->
+<div class="related-section">
+  <div class="related-label">Continue reading</div>
+  <a href="article-demo-builder.html" class="related-card">
+    <div class="related-card-meta">Demo Engineering &middot; 6 min read</div>
+    <div class="related-card-title">How I Cut Demo Prep Time from 2 Weeks to 2 Hours</div>
+    <div class="related-card-excerpt">How automating the build pipeline cut demo prep from two weeks to a few hours, and what that made possible.</div>
+    <div class="related-card-arrow">Read article &rarr;</div>
+  </a>
+</div>
+
+<!-- AUTHOR BIO -->
+<div class="article-bio">
+  <div class="bio-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+  <div class="bio-body">
+    <h4>Andy Rapaport</h4>
+    <div class="bio-role">Principal Solution Engineer &middot; Salesforce</div>
+    <p>11 years at PNC Bank building risk models and portfolio analytics before joining Salesforce. Now building AI-native solutions and tools for the Strategic Banking team.</p>
+    <div class="bio-links">
+      <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
+      <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+      <a href="index.html#writing">More writing</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-name">Andy Rapaport</div>
+    <div class="footer-tagline">Opinions are my own.</div>
+  </div>
+  <nav class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+    <a href="index.html#top">Home</a>
+  </nav>
+</footer>
+
+<script>
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  function toggleTheme() {
+    const isLight = html.getAttribute('data-theme') === 'light';
+    html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+    btn.textContent = isLight ? '\u{1F319}' : '\u{2600}\u{FE0F}';
+    localStorage.setItem('theme', isLight ? 'dark' : 'light');
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) { html.setAttribute('data-theme', saved); btn.textContent = saved === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F319}'; }
+
+  const progressBar = document.getElementById('readingProgress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey) toggleTheme();
+  });
+
+  function copyLink() {
+    const url = 'https://andyrapaport.com/article-headless-analytics.html?utm_source=linkedin&utm_medium=direct';
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copyBtn');
+      const label = document.getElementById('copyLabel');
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); label.textContent = 'Copy link'; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
