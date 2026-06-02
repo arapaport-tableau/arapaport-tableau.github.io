@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Pulse Handles Point-in-Time Metrics Now — Andy Rapaport</title>
+  <meta name="description" content="Tableau Pulse now supports snapshot metrics natively with a Temporality setting. Here's what it does, how it changes automated insights, and why the placement of the logic matters.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://andyrapaport.com/article-pit-metrics.html">
+  <meta property="og:title" content="How Pulse Handles Point-in-Time Metrics Now">
+  <meta property="og:description" content="Tableau Pulse now supports snapshot metrics natively with a Temporality setting. Here's what it does, how it changes automated insights, and why the placement of the logic matters.">
+  <meta property="og:image" content="https://andyrapaport.com/og-image.png">
+  <meta property="og:site_name" content="Andy Rapaport">
+  <meta property="article:author" content="Andy Rapaport">
+  <meta property="article:published_time" content="2026-06-02">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How Pulse Handles Point-in-Time Metrics Now">
+  <meta name="twitter:description" content="Tableau Pulse now supports snapshot metrics natively with a Temporality setting. Here's what it does, how it changes automated insights, and why the placement of the logic matters.">
+  <meta name="twitter:image" content="https://andyrapaport.com/og-image.png">
+
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --surface: rgba(255,255,255,0.03);
+      --surface-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.16);
+      --text: #F1F5F9;
+      --muted: #64748B;
+      --subtle: #334155;
+      --indigo: #6366F1;
+      --teal: #14B8A6;
+      --purple: #A855F7;
+      --green: #22C55E;
+      --nav-h: 64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    [data-theme="light"] {
+      --bg: #F8FAFC;
+      --surface: rgba(0,0,0,0.025);
+      --surface-hover: rgba(0,0,0,0.05);
+      --border: rgba(0,0,0,0.09);
+      --border-hover: rgba(0,0,0,0.18);
+      --text: #0F172A;
+      --muted: #64748B;
+      --subtle: #94A3B8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── READING PROGRESS ── */
+    .reading-progress {
+      position: fixed; top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: linear-gradient(90deg, #6366F1, #14B8A6, #A855F7);
+      z-index: 200; transition: width 0.1s linear;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h); z-index: 100;
+      display: flex; align-items: center; padding: 0 40px;
+      background: rgba(8,8,8,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="light"] nav { background: rgba(248,250,252,0.85); }
+
+    .nav-logo { font-size:16px; font-weight:800; color:var(--text); text-decoration:none; letter-spacing:-0.03em; margin-right:16px; }
+    .nav-logo span { color:var(--indigo); }
+    .nav-back { font-size:13px; font-weight:600; color:var(--muted); text-decoration:none; transition:color 0.2s; margin-right:auto; }
+    .nav-back:hover { color:var(--text); }
+    .nav-link { font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; transition:color 0.2s; margin-left:24px; }
+    .nav-link:hover { color:var(--text); }
+    .theme-toggle { margin-left:24px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:background 0.2s, border-color 0.2s; }
+    .theme-toggle:hover { background:var(--surface-hover); border-color:var(--border-hover); }
+
+    /* ── ARTICLE HEADER ── */
+    .article-header {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 72px) 24px 56px;
+      animation: fadeUp 0.7s ease;
+    }
+
+    .article-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+    .tag { display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:var(--surface); white-space:nowrap; }
+    .tag.t-tableau { border-color:rgba(99,102,241,0.3); color:#818CF8; background:rgba(99,102,241,0.06); }
+    .tag.t-ai { border-color:rgba(20,184,166,0.3); color:#2DD4BF; background:rgba(20,184,166,0.06); }
+    .tag.t-data { border-color:rgba(168,85,247,0.3); color:#C084FC; background:rgba(168,85,247,0.06); }
+
+    .article-title {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .article-deck {
+      font-size: 19px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 36px;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-avatar { width:40px; height:40px; border-radius:50%; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
+    .meta-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+    .meta-body { flex:1; }
+    .meta-name { font-size:14px; font-weight:700; }
+    .meta-details { font-size:12px; color:var(--muted); }
+    .meta-right { text-align:right; }
+    .meta-date { font-size:13px; font-weight:600; }
+    .meta-read { font-size:12px; color:var(--muted); }
+
+    /* ── ARTICLE BODY ── */
+    .article-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 64px;
+    }
+
+    .article-body p {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    .article-body h2 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-top: 56px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .article-body hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 48px 0;
+    }
+
+    .article-body a { color: var(--indigo); text-decoration: underline; text-underline-offset: 3px; }
+    .article-body a:hover { color: #818CF8; }
+
+    .pull-quote {
+      border-left: 3px solid var(--indigo);
+      padding: 16px 24px;
+      margin: 40px 0;
+      background: var(--surface);
+      border-radius: 0 12px 12px 0;
+    }
+    .pull-quote p {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    /* ── INTERACTIVE EXPLAINER MODULE ── */
+    .explainer-module {
+      background: var(--surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 16px;
+      padding: 28px;
+      margin: 40px 0;
+    }
+
+    .module-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .module-eyebrow::before { content:''; display:block; width:18px; height:1px; background:var(--muted); }
+
+    .def-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+    @media (max-width:560px) { .def-grid { grid-template-columns:1fr; } }
+
+    .def-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .def-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .def-card.pit::after { background: #6366F1; }
+    .def-card.agg::after { background: #14B8A6; }
+
+    .def-type { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+    .def-card.pit .def-type { color:#818CF8; }
+    .def-card.agg .def-type { color:#2DD4BF; }
+
+    .def-card h3 { font-size:15px; font-weight:700; letter-spacing:-0.02em; color:var(--text); margin-bottom:8px; }
+    .def-card p { font-size:13px !important; color:var(--muted) !important; line-height:1.6 !important; margin-bottom:0 !important; }
+
+    .def-q {
+      margin-top:12px; padding:8px 12px; border-radius:8px;
+      font-size:12px; font-style:italic; line-height:1.5;
+    }
+    .def-card.pit .def-q { background:rgba(99,102,241,0.08); color:#818CF8; border-left:2px solid rgba(99,102,241,0.35); }
+    .def-card.agg .def-q { background:rgba(20,184,166,0.08); color:#2DD4BF; border-left:2px solid rgba(20,184,166,0.35); }
+
+    .chart-block {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 12px;
+    }
+    .chart-block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+    .chart-title { font-size:13px; font-weight:700; color:var(--text); }
+    .chart-desc { font-size:11px; color:var(--muted); }
+
+    canvas { width:100%; display:block; border-radius:6px; }
+
+    .scrubber-row { display:flex; align-items:center; gap:12px; margin-top:14px; }
+    .scrubber-row label { font-size:10px; color:var(--muted); white-space:nowrap; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+
+    input[type=range] {
+      -webkit-appearance:none; width:100%; height:3px;
+      background:var(--border-hover); border-radius:4px; outline:none; cursor:pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+      background:#6366F1; border:2px solid var(--bg); cursor:grab;
+      box-shadow:0 0 0 3px rgba(99,102,241,0.2); transition:box-shadow 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow:0 0 0 5px rgba(99,102,241,0.25); }
+
+    .metric-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+    @media (max-width:480px) { .metric-row { grid-template-columns:1fr; } }
+
+    .metric-box { border-radius:8px; padding:14px 16px; border:1px solid; }
+    .metric-box.pit { background:rgba(99,102,241,0.08); border-color:rgba(99,102,241,0.25); }
+    .metric-box.agg { background:rgba(20,184,166,0.08); border-color:rgba(20,184,166,0.25); }
+
+    .m-type { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+    .metric-box.pit .m-type { color:#818CF8; }
+    .metric-box.agg .m-type { color:#2DD4BF; }
+
+    .m-name { font-size:11px; color:var(--muted); margin-bottom:6px; }
+    .m-value { font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-0.03em; line-height:1; }
+    .metric-box.pit .m-value { color:#a5b4fc; }
+    .metric-box.agg .m-value { color:#5eead4; }
+    .m-sub { font-size:10px; color:var(--subtle); margin-top:4px; }
+
+    .module-note {
+      margin-top:12px; padding:10px 14px;
+      background:rgba(255,255,255,0.02);
+      border-radius:8px; border-left:2px solid #6366F1;
+      font-size:12px; color:var(--muted); line-height:1.6;
+    }
+    .module-note strong { color:var(--text); font-weight:600; }
+    .module-note.agg-note { border-left-color:#14B8A6; }
+
+    /* ── FEATURE CARD ── */
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 14px;
+      padding: 24px;
+      margin: 32px 0;
+    }
+    .feature-card-eyebrow { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--indigo); margin-bottom:10px; }
+    .feature-card h3 { font-size:17px; font-weight:700; letter-spacing:-0.02em; color:var(--text); margin-bottom:6px; }
+    .feature-card > p { font-size:14px !important; color:var(--muted) !important; margin-bottom:16px !important; }
+
+    .rollup-options { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    @media (max-width:560px) { .rollup-options { grid-template-columns:1fr; } }
+
+    .rollup-opt { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+    .rollup-opt.default-opt { border-color:rgba(99,102,241,0.3); background:rgba(99,102,241,0.06); }
+
+    .rollup-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .rollup-opt.default-opt .rollup-name { color:#a5b4fc; }
+    .rollup-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+    .rollup-badge {
+      display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.06em;
+      text-transform:uppercase; padding:1px 6px; border-radius:999px;
+      background:rgba(99,102,241,0.12); color:#818CF8;
+      border:1px solid rgba(99,102,241,0.3); margin-left:5px; vertical-align:middle;
+    }
+
+    /* ── INSIGHTS TABLE ── */
+    .insights-table { width:100%; border-collapse:collapse; margin:24px 0 8px; font-size:14px; }
+    .insights-table th {
+      text-align:left; font-size:10px; font-weight:700; letter-spacing:0.1em;
+      text-transform:uppercase; color:var(--muted); padding:8px 12px;
+      border-bottom:1px solid var(--border-hover);
+    }
+    .insights-table td {
+      padding:12px; border-bottom:1px solid var(--border);
+      color:var(--muted); vertical-align:top; line-height:1.55;
+    }
+    .insights-table tr:last-child td { border-bottom:none; }
+    .insights-table td:first-child { font-weight:700; color:var(--text); white-space:nowrap; width:180px; }
+    .insights-table td.changed { color:#a5b4fc; }
+
+    p.insight-note { font-size:14px !important; color:var(--muted) !important; font-style:italic; }
+
+    /* ── SHARE BAR ── */
+    .share-bar {
+      max-width:720px; margin:0 auto 32px; padding:0 24px;
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .share-label { font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-right:6px; }
+    .share-btn {
+      display:inline-flex; align-items:center; gap:7px;
+      font-size:13px; font-weight:600; padding:8px 16px; border-radius:999px;
+      border:1px solid var(--border); background:var(--surface); color:var(--muted);
+      text-decoration:none; cursor:pointer;
+      transition:background 0.2s, border-color 0.2s, color 0.2s; font-family:inherit;
+    }
+    .share-btn:hover { background:var(--surface-hover); border-color:var(--border-hover); color:var(--text); }
+    .share-linkedin:hover { border-color:rgba(99,102,241,0.35); color:#818CF8; }
+    .share-copy.copied { border-color:rgba(20,184,166,0.35); color:#2DD4BF; }
+
+    /* ── RELATED ARTICLES ── */
+    .related-section { max-width:720px; margin:0 auto 48px; padding:0 24px; }
+    .related-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+    .related-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media (max-width:600px) { .related-grid { grid-template-columns:1fr; } }
+
+    .related-card {
+      display:block; padding:24px; background:var(--surface);
+      border:1px solid var(--border); border-radius:14px; text-decoration:none;
+      transition:border-color 0.2s, background 0.2s;
+    }
+    .related-card:hover { background:var(--surface-hover); border-color:var(--border-hover); }
+    .related-card-meta { font-size:12px; color:var(--muted); margin-bottom:8px; }
+    .related-card-title { font-size:18px; font-weight:700; color:var(--text); letter-spacing:-0.02em; line-height:1.3; margin-bottom:8px; }
+    .related-card-excerpt { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+    .related-card-arrow { font-size:13px; font-weight:600; color:var(--indigo); }
+
+    /* ── AUTHOR BIO ── */
+    .article-bio {
+      max-width:720px; margin:0 auto 80px;
+      padding:32px; background:var(--surface);
+      border:1px solid var(--border); border-radius:16px;
+      display:flex; gap:20px; align-items:flex-start;
+      margin-left:24px; margin-right:24px;
+    }
+    @media (max-width:720px) { .article-bio { flex-direction:column; } }
+    .bio-avatar { width:56px; height:56px; border-radius:50%; overflow:hidden; border:1px solid var(--border); flex-shrink:0; }
+    .bio-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+    .bio-body h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+    .bio-body .bio-role { font-size:12px; color:var(--indigo); font-weight:600; margin-bottom:10px; }
+    .bio-body p { font-size:13px !important; color:var(--muted) !important; line-height:1.7 !important; margin-bottom:12px !important; }
+    .bio-links { display:flex; gap:16px; }
+    .bio-links a { font-size:12px; font-weight:600; color:var(--indigo); text-decoration:none; }
+    .bio-links a:hover { color:#818CF8; }
+
+    /* ── FOOTER ── */
+    footer { padding:36px 40px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+    .footer-name { font-size:14px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+    .footer-tagline { font-size:12px; color:var(--muted); }
+    .footer-links { display:flex; gap:24px; }
+    .footer-links a { font-size:13px; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--text); }
+
+    .article-figure {
+      margin: 32px 0;
+      border: 1px solid var(--border-hover);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .article-figure img {
+      width: 100%;
+      display: block;
+    }
+    .article-figure figcaption {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width:640px) {
+      nav { padding:0 20px; }
+      .article-header, .article-body { padding-left:20px; padding-right:20px; }
+      footer { padding:28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="reading-progress" id="readingProgress"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Andy<span>.</span></a>
+  <a href="index.html#writing" class="nav-back">&larr; All writing</a>
+  <a href="index.html#tools" class="nav-link">Tools</a>
+  <a href="index.html#about" class="nav-link">About</a>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light/dark theme">&#127769;</button>
+</nav>
+
+<!-- ARTICLE HEADER -->
+<div class="article-header">
+  <div class="article-tags">
+    <span class="tag t-tableau">Tableau Pulse</span>
+    <span class="tag t-data">Data Modeling</span>
+    <span class="tag t-ai">Analytics</span>
+  </div>
+  <h1 class="article-title">How Pulse Handles Point-in-Time Metrics Now</h1>
+  <p class="article-deck">At some point you've had to explain to a business user why the account balance BAN (the headline number) and the sparkline disagree. The explanation is correct and they half-understand it and neither of you is satisfied. The root cause was that Pulse had no concept of a snapshot metric. A new Temporality setting fixes that. This is what it actually does.</p>
+  <div class="article-meta">
+    <div class="meta-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+    <div class="meta-body">
+      <div class="meta-name">Andy Rapaport</div>
+      <div class="meta-details">Principal Solution Engineer &middot; Salesforce</div>
+    </div>
+    <div class="meta-right">
+      <div class="meta-date">June 2026</div>
+      <div class="meta-read">8 min read</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE BODY -->
+<div class="article-body">
+
+  <p>The analyst built everything correctly. The data is right. The problem is that Pulse was treating account balance like total deposits, and those are not the same kind of thing.</p>
+
+  <h2>Two kinds of metrics</h2>
+
+  <p>Most analytics tools make an implicit assumption when you ask them to chart a metric over time: the values accumulate. Revenue sums up. Transactions count up. The longer the window, the bigger the number. This is true for a lot of metrics, and it's the right behavior.</p>
+
+  <p>But it's not true for all of them. Some metrics don't accumulate. They represent a state at a moment in time. An account balance on December 31st isn't the sum of every deposit over the year. It's the net position at that close. Inventory on hand isn't the total of every unit ever received. It's what's sitting in the warehouse right now. Open support cases isn't the count of every case ever opened. It's how many are unresolved as of this moment.</p>
+
+  <p>These are different questions. The data model for answering them looks different. The way you aggregate them looks different. Confuse one for the other and the output looks wrong in ways that are hard to explain to someone who isn't already looking at the data.</p>
+
+  <!-- INTERACTIVE EXPLAINER -->
+  <div class="explainer-module">
+    <div class="module-eyebrow">Interactive explainer</div>
+
+    <div class="def-grid">
+      <div class="def-card pit">
+        <div class="def-type">Point-in-Time</div>
+        <h3>A snapshot at one moment</h3>
+        <p>Captures the state of something at a specific instant. The value is tied to a timestamp. Ask the same question at a different moment and you get a different answer.</p>
+        <div class="def-q">"What is this account's balance right now?"</div>
+      </div>
+      <div class="def-card agg">
+        <div class="def-type">Aggregate</div>
+        <h3>A calculation over a window</h3>
+        <p>Summarizes events or values across a time range. The value depends on what happened and how wide a window you look through. Change the window, change the answer.</p>
+        <div class="def-q">"How much was deposited this month?"</div>
+      </div>
+    </div>
+
+    <div class="chart-block">
+      <div class="chart-block-header">
+        <span class="chart-title">Daily account balance over 30 days</span>
+        <span class="chart-desc">Drag the scrubber</span>
+      </div>
+      <canvas id="artChart" height="190"></canvas>
+      <div class="scrubber-row">
+        <label>Day</label>
+        <input type="range" id="artScrubber" min="0" max="29" value="14" step="1">
+      </div>
+      <div class="metric-row">
+        <div class="metric-box pit">
+          <div class="m-type">Point-in-Time</div>
+          <div class="m-name">Account Balance</div>
+          <div class="m-value" id="art-pit-val">$0</div>
+          <div class="m-sub" id="art-pit-sub">at end of Day 1</div>
+        </div>
+        <div class="metric-box agg">
+          <div class="m-type">Aggregate</div>
+          <div class="m-name">Total Deposits (Day 1 to selected)</div>
+          <div class="m-value" id="art-agg-val">$0</div>
+          <div class="m-sub" id="art-agg-sub">across 1 day</div>
+        </div>
+      </div>
+      <div class="module-note">
+        <strong>Notice:</strong> Both values change as you move the scrubber, but for different reasons. The balance changes because <strong>you moved to a different moment</strong>. The deposit total changes because <strong>you widened the window</strong>. Same data, different questions.
+      </div>
+    </div>
+
+  </div>
+
+  <p>This is the gap Pulse closed. Up until now, viewing a balance metric for the current month to date would sum up each day's recorded value across the time range — which produces a number that is both wrong and inexplicable to anyone who isn't looking at the underlying data model. Snapshot metrics weren't supported natively, so analysts worked around the absence. Now they don't have to.</p>
+
+  <h2>How it was being handled</h2>
+
+  <p>Tableau published a workaround. The help article explains how to use a Last Aggregate Level of Detail calculation to force Pulse to display the last recorded value in a period instead of summing. The technique works. I've used it and recommended it to customers.</p>
+
+  <p>The problem is what it requires. You need to understand how LOD calculations work, how they interact with the published data source Pulse is querying, and how that affects what the metric actually displays. For a Tableau developer, that's a twenty-minute fix. For a business analyst configuring metrics in Pulse for the first time, it's a dead end.</p>
+
+  <p>The deeper issue was that snapshot metric support simply wasn't built into the definition layer yet. The LOD workaround was a reasonable bridge — it got the right number on screen — but the logic belonged in the metric definition, not in the data source. That's what this release addresses.</p>
+
+  <h2>What Pulse now does</h2>
+
+  <p>The new release adds a Temporality setting to the metric definition. Set it to "Latest point in time" and Pulse switches the metric to non-cumulative behavior automatically. No LOD required. The platform handles forward-filling, which means a balance recorded at month-end carries forward into a new period where no new data has been recorded yet. The BAN and the sparkline now agree.</p>
+
+  <figure class="article-figure">
+    <img src="pulse-pit-screenshot.png" alt="Tableau Pulse metric definition showing Temporality set to 'Latest point in time' with the preview card displaying the Latest Point in Time badge">
+    <figcaption>The Temporality dropdown in metric definition (left) and the resulting "Latest Point in Time" badge on the metric card (right). No LOD required.</figcaption>
+  </figure>
+
+  <div class="feature-card">
+    <div class="feature-card-eyebrow">Tableau Pulse — Point-in-Time Metric Support</div>
+    <h3>Period Rollup Method</h3>
+    <p>When a business user views a snapshot metric at a higher granularity than the base data (monthly balance from daily records), Pulse needs to know how to represent each period. You set this at definition time.</p>
+    <div class="rollup-options">
+      <div class="rollup-opt default-opt">
+        <div class="rollup-name">Last value of period <span class="rollup-badge">default</span></div>
+        <div class="rollup-desc">Balance at end of the month. Right for most snapshot metrics — you care about the closing position.</div>
+      </div>
+      <div class="rollup-opt">
+        <div class="rollup-name">First value of period</div>
+        <div class="rollup-desc">Balance at start of the month. Useful when the opening position matters more than the close.</div>
+      </div>
+      <div class="rollup-opt">
+        <div class="rollup-name">Average over period</div>
+        <div class="rollup-desc">Mean of daily values. Useful for metrics like average daily balance or average inventory on hand.</div>
+      </div>
+    </div>
+  </div>
+
+  <p>This choice lives at the metric definition level. The analyst makes it once, and every business user consuming that metric across every surface gets consistent, correctly behaved values. Change the definition and everything updates. The logic is in one place.</p>
+
+  <h2>What changes downstream</h2>
+
+  <p>The sparkline matching the BAN is the obvious fix. It matters, but it's not the most significant change. The bigger shift is what happens to insights.</p>
+
+  <p>Pulse generates automated insights: period-over-period change, top contributors by dimension, unusual highs and lows, trend detection. All of those were built around the assumption that metrics accumulate. Marking a metric as Snapshot changes what every one of those calculations does.</p>
+
+  <table class="insights-table">
+    <thead>
+      <tr>
+        <th>Insight type</th>
+        <th>What changes in Snapshot mode</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Period-over-period change</td>
+        <td class="changed">Compares last recorded values in each period, not sums. December 31st balance vs. November 30th balance. That's the right question.</td>
+      </tr>
+      <tr>
+        <td>Top contributors by dimension</td>
+        <td class="changed">Uses the rollup method per entity. Shows which accounts or segments had the highest balance at end of period, not which accumulated the most transaction volume.</td>
+      </tr>
+      <tr>
+        <td>Unusual high / low</td>
+        <td class="changed">Flags whether the end-of-period value is outside the expected range. Avoids false positives from mid-period fluctuations that resolved before the period closed.</td>
+      </tr>
+      <tr>
+        <td>Trend detection</td>
+        <td class="changed">Detects sustained shifts in end-of-period values, not noise in daily data. More reliable for strategic patterns.</td>
+      </tr>
+      <tr>
+        <td>Pace to goal</td>
+        <td>Suppressed entirely. Pace to goal is a forecasting concept that projects where a cumulative value will end up. It doesn't apply to a snapshot. Showing it would be misleading.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="insight-note">The insight changes aren't cosmetic. Period-over-period on a cumulative metric compares sums. On a snapshot metric it compares states. Same label, materially different math, and the right behavior in both cases only if the metric type is defined correctly.</p>
+
+  <h2>What this means for how you model data</h2>
+
+  <p>Before this change, getting snapshot metrics right in Pulse required a developer who understood LOD syntax and how it interacted with the published data source. The metric worked correctly only because of a calculation someone wrote. If that person left, or the data source structure changed, the behavior could drift silently — and nobody would know until a business user noticed.</p>
+
+  <p>Now the declaration lives in the metric definition. The analyst who creates the metric marks it as a snapshot. That flows through to the BAN, the sparkline, every insight, and every surface where the metric appears. The person who owns the business question also owns the configuration. That's where it should have been.</p>
+
+  <div class="pull-quote">
+    <p>That's the shift that matters to me. Not the chart fix. The chart fix is the visible payoff. The more significant thing is that snapshot metric behavior now lives where it should — in the definition — rather than in a calculation buried in a data source that most business analysts will never see.</p>
+  </div>
+
+  <hr>
+
+  <p>The account balance example is a good one because the failure is obvious. The BAN shows a balance and the chart is empty. Nobody thinks that's correct. The harder cases are the ones where the wrong aggregation produces a plausible-looking number. Balance summed over a month is a large figure that could plausibly be something real. You might not question it.</p>
+
+  <p>Those are the metrics worth auditing. If you have snapshot metrics in Pulse right now, it's worth checking what they're actually doing. The toggle is one click. The consequences of getting it wrong are harder to find than a blank sparkline.</p>
+
+</div>
+
+<!-- SHARE BAR -->
+<div class="share-bar">
+  <span class="share-label">Share</span>
+  <a class="share-btn share-linkedin" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fandyrapaport.com%2Farticle-pit-metrics.html%3Futm_source%3Dlinkedin%26utm_medium%3Dsocial%26utm_campaign%3Dpost" target="_blank" rel="noopener">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    LinkedIn
+  </a>
+  <button class="share-btn share-copy" id="copyBtn" onclick="copyLink()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span id="copyLabel">Copy link</span>
+  </button>
+</div>
+
+<!-- RELATED ARTICLES -->
+<div class="related-section">
+  <div class="related-label">Continue reading</div>
+  <div class="related-grid">
+    <a href="article-two-weeks.html" class="related-card">
+      <div class="related-card-meta">AI &middot; 7 min read</div>
+      <div class="related-card-title">Two Weeks to Two Hours</div>
+      <div class="related-card-excerpt">Building enterprise solutions used to mean two weeks of scaffolding for every idea worth showing. AI compressed that to a couple of hours and changed where I spend my time.</div>
+      <div class="related-card-arrow">Read article &rarr;</div>
+    </a>
+    <a href="article-sentinel.html" class="related-card">
+      <div class="related-card-meta">Agentic Analytics &middot; 7 min read</div>
+      <div class="related-card-title">A Client Doesn't Announce When They're Leaving</div>
+      <div class="related-card-excerpt">What I built for Tableau Conference — and why it's the same problem I was still trying to solve when I left PNC in 2021.</div>
+      <div class="related-card-arrow">Read article &rarr;</div>
+    </a>
+  </div>
+</div>
+
+<!-- AUTHOR BIO -->
+<div class="article-bio">
+  <div class="bio-avatar"><img src="New Headshot.png" alt="Andy Rapaport"></div>
+  <div class="bio-body">
+    <h4>Andy Rapaport</h4>
+    <div class="bio-role">Principal Solution Engineer &middot; Salesforce</div>
+    <p>11 years at PNC Bank building risk models and portfolio analytics before joining Salesforce. Now building AI-native solutions and tools for the Strategic Banking team.</p>
+    <div class="bio-links">
+      <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank">LinkedIn</a>
+      <a href="https://github.com/arapaport-tableau" target="_blank">GitHub</a>
+      <a href="index.html#writing">More writing</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-name">Andy Rapaport</div>
+    <div class="footer-tagline">Opinions are my own.</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://www.linkedin.com/in/andrew-rapaport/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="https://github.com/arapaport-tableau" target="_blank" rel="noopener">GitHub ↗</a>
+    <a href="index.html#top">Home</a>
+  </div>
+</footer>
+
+<script>
+  // ── Theme toggle ──
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  function toggleTheme() {
+    const isLight = html.getAttribute('data-theme') === 'light';
+    html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+    btn.textContent = isLight ? '\u{1F319}' : '\u{2600}\u{FE0F}';
+    localStorage.setItem('theme', isLight ? 'dark' : 'light');
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) { html.setAttribute('data-theme', saved); btn.textContent = saved === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F319}'; }
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey && !e.altKey && document.activeElement.tagName !== 'INPUT') toggleTheme();
+  });
+
+  // ── Reading progress ──
+  const progressBar = document.getElementById('readingProgress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+  });
+
+  // ── Copy link ──
+  function copyLink() {
+    const url = 'https://andyrapaport.com/article-pit-metrics.html?utm_source=linkedin&utm_medium=direct';
+    navigator.clipboard.writeText(url).then(() => {
+      const copyBtn = document.getElementById('copyBtn');
+      const label = document.getElementById('copyLabel');
+      copyBtn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.classList.remove('copied'); label.textContent = 'Copy link'; }, 2000);
+    });
+  }
+
+  // ── Interactive chart ──
+  const DAYS = 30;
+  const rng = (seed) => { let s = seed; return () => { s = (s*16807) % 2147483647; return (s-1)/2147483646; }; };
+  const rand = rng(42);
+  const balances = [], deposits = [];
+  let bal = 12400;
+  for (let i = 0; i < DAYS; i++) {
+    const dep = Math.round(rand() * 2000 + 200);
+    const wit = Math.round(rand() * 1800 + 100);
+    deposits.push(dep);
+    bal = bal + dep - wit;
+    balances.push(bal);
+  }
+  const fmt = v => '$' + Math.round(v).toLocaleString();
+
+  const canvas = document.getElementById('artChart');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = 190 * dpr;
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', () => { resize(); drawChart(+document.getElementById('artScrubber').value); });
+  resize();
+
+  function drawChart(idx) {
+    const W = canvas.offsetWidth, H = 190;
+    const pad = { top:16, right:14, bottom:28, left:52 };
+    const cw = W - pad.left - pad.right, ch = H - pad.top - pad.bottom;
+    ctx.clearRect(0, 0, W, H);
+    const minB = Math.min(...balances) * 0.96, maxB = Math.max(...balances) * 1.04;
+    const xS = i => pad.left + (i/(DAYS-1)) * cw;
+    const yS = v => pad.top + ch - ((v-minB)/(maxB-minB)) * ch;
+
+    for (let g = 0; g <= 4; g++) {
+      const y = pad.top + (g/4)*ch;
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+      ctx.moveTo(pad.left, y); ctx.lineTo(pad.left+cw, y); ctx.stroke();
+      ctx.fillStyle = 'rgba(100,116,139,0.6)'; ctx.font = '9px system-ui,sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText('$'+Math.round((maxB-(g/4)*(maxB-minB))/1000)+'k', pad.left-6, y+3);
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(xS(0), yS(balances[0]));
+    for (let i = 1; i <= idx; i++) ctx.lineTo(xS(i), yS(balances[i]));
+    ctx.lineTo(xS(idx), H-pad.bottom); ctx.lineTo(xS(0), H-pad.bottom); ctx.closePath();
+    const g1 = ctx.createLinearGradient(0, pad.top, 0, H-pad.bottom);
+    g1.addColorStop(0, 'rgba(20,184,166,0.15)'); g1.addColorStop(1, 'rgba(20,184,166,0.01)');
+    ctx.fillStyle = g1; ctx.fill();
+
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(99,102,241,0.18)'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < DAYS; i++) i===0 ? ctx.moveTo(xS(i),yS(balances[i])) : ctx.lineTo(xS(i),yS(balances[i]));
+    ctx.stroke();
+
+    ctx.beginPath(); ctx.strokeStyle = '#6366F1'; ctx.lineWidth = 2;
+    for (let i = 0; i <= idx; i++) i===0 ? ctx.moveTo(xS(i),yS(balances[i])) : ctx.lineTo(xS(i),yS(balances[i]));
+    ctx.stroke();
+
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.setLineDash([3,5]); ctx.lineWidth=1;
+    ctx.moveTo(xS(idx), pad.top); ctx.lineTo(xS(idx), H-pad.bottom); ctx.stroke(); ctx.setLineDash([]);
+
+    ctx.fillStyle = 'rgba(100,116,139,0.5)'; ctx.font = '8px system-ui,sans-serif'; ctx.textAlign = 'center';
+    for (const d of [0,7,14,21,29]) ctx.fillText('Day '+(d+1), xS(d), H-pad.bottom+13);
+
+    const px = xS(idx), py = yS(balances[idx]);
+    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2); ctx.fillStyle = 'rgba(99,102,241,0.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fillStyle = '#6366F1'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+  }
+
+  function updateScrubber(idx) {
+    drawChart(idx);
+    document.getElementById('art-pit-val').textContent = fmt(balances[idx]);
+    document.getElementById('art-pit-sub').textContent = 'at end of Day '+(idx+1);
+    const tot = deposits.slice(0,idx+1).reduce((a,b)=>a+b,0);
+    document.getElementById('art-agg-val').textContent = fmt(tot);
+    document.getElementById('art-agg-sub').textContent = 'across '+(idx+1)+' day'+(idx?'s':'');
+  }
+  document.getElementById('artScrubber').addEventListener('input', e => updateScrubber(+e.target.value));
+  updateScrubber(14);
+
+</script>
+</body>
+</html>
