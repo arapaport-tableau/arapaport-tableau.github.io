@@ -304,23 +304,6 @@
     .feature-card h3 { font-size:17px; font-weight:700; letter-spacing:-0.02em; color:var(--text); margin-bottom:6px; }
     .feature-card > p { font-size:14px !important; color:var(--muted) !important; margin-bottom:16px !important; }
 
-    .rollup-options { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-    @media (max-width:560px) { .rollup-options { grid-template-columns:1fr; } }
-
-    .rollup-opt { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
-    .rollup-opt.default-opt { border-color:rgba(99,102,241,0.3); background:rgba(99,102,241,0.06); }
-
-    .rollup-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
-    .rollup-opt.default-opt .rollup-name { color:#a5b4fc; }
-    .rollup-desc { font-size:12px; color:var(--muted); line-height:1.5; }
-
-    .rollup-badge {
-      display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.06em;
-      text-transform:uppercase; padding:1px 6px; border-radius:999px;
-      background:rgba(99,102,241,0.12); color:#818CF8;
-      border:1px solid rgba(99,102,241,0.3); margin-left:5px; vertical-align:middle;
-    }
-
     /* ── INSIGHTS TABLE ── */
     .insights-table { width:100%; border-collapse:collapse; margin:24px 0 8px; font-size:14px; }
     .insights-table th {
@@ -541,28 +524,6 @@
     <img src="pulse-pit-screenshot.png" alt="Tableau Pulse metric definition showing Temporality set to 'Latest point in time' with the preview card displaying the Latest Point in Time badge">
     <figcaption>The Temporality dropdown in metric definition (left) and the resulting "Latest Point in Time" badge on the metric card (right). No LOD required.</figcaption>
   </figure>
-
-  <div class="feature-card">
-    <div class="feature-card-eyebrow">Tableau Pulse — Point-in-Time Metric Support</div>
-    <h3>Period Rollup Method</h3>
-    <p>When a business user views a snapshot metric at a higher granularity than the base data (monthly balance from daily records), Pulse needs to know how to represent each period. You set this at definition time.</p>
-    <div class="rollup-options">
-      <div class="rollup-opt default-opt">
-        <div class="rollup-name">Last value of period <span class="rollup-badge">default</span></div>
-        <div class="rollup-desc">Balance at end of the month. Right for most snapshot metrics — you care about the closing position.</div>
-      </div>
-      <div class="rollup-opt">
-        <div class="rollup-name">First value of period</div>
-        <div class="rollup-desc">Balance at start of the month. Useful when the opening position matters more than the close.</div>
-      </div>
-      <div class="rollup-opt">
-        <div class="rollup-name">Average over period</div>
-        <div class="rollup-desc">Mean of daily values. Useful for metrics like average daily balance or average inventory on hand.</div>
-      </div>
-    </div>
-  </div>
-
-  <p>This choice lives at the metric definition level. The analyst makes it once, and every business user consuming that metric across every surface gets consistent, correctly behaved values. Change the definition and everything updates. The logic is in one place.</p>
 
   <h2>What changes downstream</h2>
 
