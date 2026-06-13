@@ -446,7 +446,7 @@
 <!-- ARTICLE BODY -->
 <div class="article-body">
 
-  <p>The analyst built everything correctly. The data is right. The problem is that Tableau Pulse was treating account balance like total deposits, and those are not the same kind of thing.</p>
+  <p>Until recently, Pulse only knew one way to roll daily values into a monthly figure: add them up. That works for revenue and transactions. It doesn't work for an account balance, where the month-end number is the last reading, not the sum of every reading along the way.</p>
 
   <h2>Two kinds of metrics</h2>
 
@@ -518,7 +518,9 @@
 
   <h2>What Pulse now does</h2>
 
-  <p>The new release adds a Temporality setting to the metric definition. Set it to "Latest point in time" and Pulse switches the metric to non-cumulative behavior automatically. No LOD required. The platform handles forward-filling, which means a balance recorded at month-end carries forward into a new period where no new data has been recorded yet. The BAN and the sparkline now agree.</p>
+  <p>The new release adds a Temporality setting on the metric definition page. The dropdown has two options: "Over time" (the default, and what every existing metric has been doing) and "Latest point in time." Switch to the latter and save. The change takes effect immediately, with no republishing or LOD calculation needed.</p>
+
+  <p>Pulse handles forward-filling, so a balance recorded at month-end carries forward into a new period where no new data has been recorded yet. The BAN and the sparkline now agree.</p>
 
   <figure class="article-figure">
     <img src="pulse-pit-screenshot.png" alt="Tableau Pulse metric definition showing Temporality set to 'Latest point in time' with the preview card displaying the Latest Point in Time badge">
@@ -576,9 +578,21 @@
 
   <hr>
 
-  <p>The account balance example is a good one because the failure is obvious. The BAN shows a balance and the chart is empty. Nobody thinks that's correct. The harder cases are the ones where the wrong aggregation produces a plausible-looking number. Balance summed over a month is a large figure that could plausibly be something real. You might not question it.</p>
+  <h2>Changing a metric you've already published</h2>
 
-  <p>Those are the metrics worth auditing. If you have snapshot metrics in Pulse right now, it's worth checking what they're actually doing. The toggle is one click. The consequences of getting it wrong are harder to find than a blank sparkline.</p>
+  <p>Flipping an existing metric from "Over time" to "Latest point in time" doesn't break the chart. The sparkline redraws using the new logic, and historical periods recalculate so the trend still shows continuity instead of an abrupt break at the toggle date.</p>
+
+  <p>If the metric was originally configured with the LOD workaround, the new setting appears to take precedence. Pulse may just be applying the same logic natively now. Either way, once Temporality is set I'd remove the LOD, mostly so the next person looking at the data source isn't trying to figure out which mechanism is doing the work.</p>
+
+  <p>The thing worth flagging is what subscribers see. There's no notification when a metric's Temporality changes. The only signal is a "Latest Point in Time" badge that appears on the metric card. A follower who's been watching the metric for weeks will notice the numbers shifted, but they won't see a banner explaining why. If you're flipping a high-visibility metric, send a note. The badge won't carry the message on its own.</p>
+
+  <h2>What to do now</h2>
+
+  <p>If you're creating new metrics, treat Temporality as a required step. Anything that represents a state at a moment, like a balance, inventory level, headcount, pipeline value, or open case count, should be flipped to "Latest point in time" before you publish. The cost of getting this right on day one is a single dropdown click. The cost of catching it later is a confused stakeholder and a metric whose history needs a footnote.</p>
+
+  <p>If you own existing metrics, audit your published library. Prioritize anything financial, inventory-related, or balance-shaped, where the wrong aggregation produces a plausible-looking number rather than an obvious failure. The LOD workaround was a bridge. This is the destination. Move the logic into the definition where it belongs.</p>
+
+  <p>If you consume Pulse insights as a follower, the thing to know is that period-over-period change, top contributors, and unusual high/low calculations behave differently on a snapshot metric than on a cumulative one. Same insight names, different math. When a metric you follow gets the "Latest Point in Time" badge, the numbers and rankings will shift. That's not a bug. It's the metric finally answering the question it was supposed to answer all along.</p>
 
 </div>
 
