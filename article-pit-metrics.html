@@ -600,7 +600,17 @@
 
   <p>Auditing by hand means opening every metric definition one at a time. PulseAudit is a small tool that does it for you. Connect it to your Tableau Cloud site and it scans every Pulse metric, detects which ones use the EXCLUDE LOD pattern in the measure formula, and surfaces them in a table.</p>
 
+  <figure class="article-figure">
+    <img src="pulseaudit-results.png" alt="PulseAudit results table showing Convert Candidate, Already Converted, and Not Applicable metrics with an expanded row displaying the EXCLUDE LOD formula">
+    <figcaption>The audit results table. Convert Candidate rows are metrics whose measure formula contains an EXCLUDE LOD expression. Expanding a row shows the formula and links directly to the metric in Pulse.</figcaption>
+  </figure>
+
   <p>From there you can review the formula and flip the Temporality setting directly — no need to open the Pulse UI for each one. The change is reversible.</p>
+
+  <figure class="article-figure">
+    <img src="pulseaudit-modal.png" alt="PulseAudit convert confirmation modal explaining what will change for the metric and its subscribers">
+    <figcaption>Before converting, the tool explains what will change — headline behavior, insight calculations, and subscriber visibility.</figcaption>
+  </figure>
 
   <p>It runs locally on your machine. <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener">Get it on GitHub →</a></p>
 
