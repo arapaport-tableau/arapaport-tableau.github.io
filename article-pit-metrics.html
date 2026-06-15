@@ -506,7 +506,7 @@
 
   </div>
 
-  <p>This is the gap Pulse closed. Up until now, viewing a balance metric for the current month to date would sum up each day's recorded value across the time range — which produces a number that is both wrong and inexplicable to anyone who isn't looking at the underlying data model. Snapshot metrics weren't supported natively, so analysts worked around the absence. Now they don't have to.</p>
+  <p>This is the gap Pulse closed. Up until now, viewing a balance metric for the current month to date would sum up each day's recorded value across the time range, which produces a number that is both wrong and inexplicable to anyone who isn't looking at the underlying data model. Snapshot metrics weren't supported natively, so analysts worked around the absence. Now they don't have to.</p>
 
   <h2>How it was being handled</h2>
 
@@ -514,7 +514,7 @@
 
   <p>The problem is what it requires. You need to understand how LOD calculations work, how they interact with the published data source Pulse is querying, and how that affects what the metric actually displays. For a Tableau developer, that's a twenty-minute fix. For a business analyst configuring metrics in Pulse for the first time, it's a dead end.</p>
 
-  <p>The deeper issue was that snapshot metric support simply wasn't built into the definition layer yet. The LOD workaround was a reasonable bridge — it got the right number on screen — but the logic belonged in the metric definition, not in the data source. That's what this release addresses.</p>
+  <p>The deeper issue was that snapshot metric support simply wasn't built into the definition layer yet. The LOD workaround was a reasonable bridge. It got the right number on screen, but the logic belonged in the metric definition, not in the data source. That's what this release addresses.</p>
 
   <h2>What Pulse now does</h2>
 
@@ -568,7 +568,7 @@
 
   <h2>What this means for how you model data</h2>
 
-  <p>Before this change, getting snapshot metrics right in Pulse required a developer who understood LOD syntax and how it interacted with the published data source. The metric worked correctly only because of a calculation someone wrote. If that person left, or the data source structure changed, the behavior could drift silently — and nobody would know until a business user noticed.</p>
+  <p>Before this change, getting snapshot metrics right in Pulse required a developer who understood LOD syntax and how it interacted with the published data source. The metric worked correctly only because of a calculation someone wrote. If that person left, or the data source structure changed, the behavior could drift silently and nobody would know until a business user noticed.</p>
 
   <p>Now that setting lives in the metric definition. The analyst who creates the metric marks it as a snapshot. That flows through to the BAN, the sparkline, and every insight wherever the metric appears. The person who owns the business question also owns the configuration. That's where it should have been.</p>
 
@@ -605,7 +605,7 @@
     <figcaption>The audit results table. Convert Candidate rows are metrics whose measure formula contains an EXCLUDE LOD expression. Expanding a row shows the formula and links directly to the metric in Pulse.</figcaption>
   </figure>
 
-  <p>From there you can review the formula and flip the Temporality setting directly — no need to open the Pulse UI for each one. The change is reversible.</p>
+  <p>From there you can review the formula and flip the Temporality setting directly, without opening the Pulse UI for each one. The change is reversible.</p>
 
   <figure class="article-figure">
     <img src="pulseaudit-modal.png" alt="PulseAudit convert confirmation modal explaining what will change for the metric and its subscribers">
