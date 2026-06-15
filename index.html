@@ -350,6 +350,8 @@
     .tool-link { font-size: 12px; font-weight: 600; color: var(--indigo); text-decoration: none; }
     .tool-link:hover { color: #818CF8; }
     .tool-soon { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; }
+    .tool-arrow { font-size:12px; font-weight:600; color:var(--indigo); transition:color 0.2s; }
+    .tool-card:hover .tool-arrow { color:#818CF8; }
 
     /* ── WRITING ── */
     .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:40px; }
@@ -709,7 +711,16 @@
     <h2 class="section-title reveal reveal-delay-1">Things I've built</h2>
     <p class="section-sub reveal reveal-delay-2">Open-source tools for Tableau Solutions Engineers, built with Claude Code.</p>
     <div class="tools-grid">
-      <div class="tool-card coming-soon reveal reveal-delay-2">
+      <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener" class="tool-card reveal reveal-delay-2">
+        <div class="tool-icon">🔍</div>
+        <h3>PulseAudit</h3>
+        <p>Scans your Tableau Pulse site for metrics still using the EXCLUDE LOD workaround and lets you convert them to the native Temporality setting in one click.</p>
+        <div class="tool-footer">
+          <div class="tag-row"><span class="tag t-tableau">Tableau Pulse</span></div>
+          <span class="tool-arrow">GitHub →</span>
+        </div>
+      </a>
+      <div class="tool-card coming-soon reveal reveal-delay-3">
         <div class="tool-icon">📊</div>
         <h3>Tableau Pulse Demo Builder</h3>
         <p>Automated Pulse metric demos with synthetic data, engineered signals, and group subscriptions.</p>

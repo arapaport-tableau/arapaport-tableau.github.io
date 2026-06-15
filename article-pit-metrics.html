@@ -594,6 +594,16 @@
 
   <p>If you consume Pulse insights as a follower, the thing to know is that period-over-period change, top contributors, and unusual high/low calculations behave differently on a snapshot metric than on a cumulative one. Same insight names, different math. When a metric you follow gets the "Latest Point in Time" badge, the numbers and rankings will shift. That's not a bug. It's the metric finally answering the question it was supposed to answer all along.</p>
 
+  <hr>
+
+  <h2>PulseAudit</h2>
+
+  <p>Auditing by hand means opening every metric definition one at a time. PulseAudit is a small tool that does it for you. Connect it to your Tableau Cloud site and it scans every Pulse metric, detects which ones use the EXCLUDE LOD pattern in the measure formula, and surfaces them in a table.</p>
+
+  <p>From there you can review the formula and flip the Temporality setting directly — no need to open the Pulse UI for each one. The change is reversible.</p>
+
+  <p>It runs locally on your machine. <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener">Get it on GitHub →</a></p>
+
 </div>
 
 <!-- SHARE BAR -->
