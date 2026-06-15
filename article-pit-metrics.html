@@ -529,7 +529,7 @@
 
   <h2>What changes downstream</h2>
 
-  <p>The sparkline matching the BAN is the obvious fix. It matters, but it's not the most significant change. The bigger shift is what happens to insights.</p>
+  <p>The sparkline matching the BAN is the visible fix. It matters, but it's not where the real change is. That's what happens to insights.</p>
 
   <p>Pulse generates automated insights: period-over-period change, top contributors by dimension, unusual highs and lows, trend detection. All of those were built around the assumption that metrics accumulate. Marking a metric as Snapshot changes what every one of those calculations does.</p>
 
@@ -570,10 +570,10 @@
 
   <p>Before this change, getting snapshot metrics right in Pulse required a developer who understood LOD syntax and how it interacted with the published data source. The metric worked correctly only because of a calculation someone wrote. If that person left, or the data source structure changed, the behavior could drift silently — and nobody would know until a business user noticed.</p>
 
-  <p>Now the declaration lives in the metric definition. The analyst who creates the metric marks it as a snapshot. That flows through to the BAN, the sparkline, every insight, and every surface where the metric appears. The person who owns the business question also owns the configuration. That's where it should have been.</p>
+  <p>Now that setting lives in the metric definition. The analyst who creates the metric marks it as a snapshot. That flows through to the BAN, the sparkline, and every insight wherever the metric appears. The person who owns the business question also owns the configuration. That's where it should have been.</p>
 
   <div class="pull-quote">
-    <p>That's the shift that matters to me. Not the chart fix. The chart fix is the visible payoff. The more significant thing is that snapshot metric behavior now lives where it should — in the definition — rather than in a calculation buried in a data source that most business analysts will never see.</p>
+    <p>That's what matters to me. Not the chart fix. Snapshot metric behavior now lives where it belongs, in the definition, rather than in a calculation buried in a data source that most business analysts will never see.</p>
   </div>
 
   <hr>
@@ -588,11 +588,11 @@
 
   <h2>What to do now</h2>
 
-  <p>If you're creating new metrics, treat Temporality as a required step. Anything that represents a state at a moment, like a balance, inventory level, headcount, pipeline value, or open case count, should be flipped to "Latest point in time" before you publish. The cost of getting this right on day one is a single dropdown click. The cost of catching it later is a confused stakeholder and a metric whose history needs a footnote.</p>
+  <p>If you're creating new metrics, treat Temporality as a required step. Anything that represents a state at a moment, like a balance, inventory level, headcount, pipeline value, or open case count, should be flipped to "Latest point in time" before you publish. Getting it right on day one is a single dropdown click. Catching it later means a confused stakeholder and a metric whose history needs a footnote.</p>
 
-  <p>If you own existing metrics, audit your published library. Prioritize anything financial, inventory-related, or balance-shaped, where the wrong aggregation produces a plausible-looking number rather than an obvious failure. The LOD workaround was a bridge. This is the destination. Move the logic into the definition where it belongs. <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener">PulseAudit</a> can scan your site and find them for you.</p>
+  <p>If you own existing metrics, audit your published library. Prioritize anything financial, inventory-related, or balance-shaped, where the wrong aggregation produces a plausible-looking number rather than an obvious failure. The LOD workaround was a bridge. Move the logic into the definition where it belongs. <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener">PulseAudit</a> can scan your site and find them for you.</p>
 
-  <p>If you consume Pulse insights as a follower, the thing to know is that period-over-period change, top contributors, and unusual high/low calculations behave differently on a snapshot metric than on a cumulative one. Same insight names, different math. When a metric you follow gets the "Latest Point in Time" badge, the numbers and rankings will shift. That's not a bug. It's the metric finally answering the question it was supposed to answer all along.</p>
+  <p>If you follow Pulse metrics as a subscriber, period-over-period change, top contributors, and unusual high/low all behave differently on a snapshot metric than on a cumulative one. Same insight names, different math. When a metric gets the "Latest Point in Time" badge, the numbers will shift. That's the metric finally answering the right question.</p>
 
   <hr>
 
