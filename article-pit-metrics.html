@@ -471,7 +471,7 @@
         <div class="def-type">Aggregate</div>
         <h3>A calculation over a window</h3>
         <p>Summarizes events or values across a time range. The value depends on what happened and how wide a window you look through. Change the window, change the answer.</p>
-        <div class="def-q">"How much was deposited this month?"</div>
+        <div class="def-q">"What is this account's balance this month?" (as Pulse calculates it)</div>
       </div>
     </div>
 
@@ -494,13 +494,13 @@
         </div>
         <div class="metric-box agg">
           <div class="m-type">Aggregate</div>
-          <div class="m-name">Total Deposits (Day 1 to selected)</div>
+          <div class="m-name">Balance summed across days (what Pulse shows)</div>
           <div class="m-value" id="art-agg-val">$0</div>
           <div class="m-sub" id="art-agg-sub">across 1 day</div>
         </div>
       </div>
       <div class="module-note">
-        <strong>Notice:</strong> Both values change as you move the scrubber, but for different reasons. The balance changes because <strong>you moved to a different moment</strong>. The deposit total changes because <strong>you widened the window</strong>. Same data, different questions.
+        <strong>Notice:</strong> Both values change as you move the scrubber, but for different reasons. The balance changes because <strong>you moved to a different moment</strong>. The Pulse total changes because <strong>you added another day's balance to the sum</strong>. Same data — Pulse is just answering the wrong question.
       </div>
     </div>
 
@@ -788,9 +788,9 @@
     drawChart(idx);
     document.getElementById('art-pit-val').textContent = fmt(balances[idx]);
     document.getElementById('art-pit-sub').textContent = 'at end of Day '+(idx+1);
-    const tot = deposits.slice(0,idx+1).reduce((a,b)=>a+b,0);
+    const tot = balances.slice(0,idx+1).reduce((a,b)=>a+b,0);
     document.getElementById('art-agg-val').textContent = fmt(tot);
-    document.getElementById('art-agg-sub').textContent = 'across '+(idx+1)+' day'+(idx?'s':'');
+    document.getElementById('art-agg-sub').textContent = 'sum of '+(idx+1)+' daily balance'+(idx?'s':'');
   }
   document.getElementById('artScrubber').addEventListener('input', e => updateScrubber(+e.target.value));
   updateScrubber(14);
