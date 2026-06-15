@@ -590,7 +590,7 @@
 
   <p>If you're creating new metrics, treat Temporality as a required step. Anything that represents a state at a moment, like a balance, inventory level, headcount, pipeline value, or open case count, should be flipped to "Latest point in time" before you publish. The cost of getting this right on day one is a single dropdown click. The cost of catching it later is a confused stakeholder and a metric whose history needs a footnote.</p>
 
-  <p>If you own existing metrics, audit your published library. Prioritize anything financial, inventory-related, or balance-shaped, where the wrong aggregation produces a plausible-looking number rather than an obvious failure. The LOD workaround was a bridge. This is the destination. Move the logic into the definition where it belongs.</p>
+  <p>If you own existing metrics, audit your published library. Prioritize anything financial, inventory-related, or balance-shaped, where the wrong aggregation produces a plausible-looking number rather than an obvious failure. The LOD workaround was a bridge. This is the destination. Move the logic into the definition where it belongs. <a href="https://github.com/arapaport-tableau/pulse-audit" target="_blank" rel="noopener">PulseAudit</a> can scan your site and find them for you.</p>
 
   <p>If you consume Pulse insights as a follower, the thing to know is that period-over-period change, top contributors, and unusual high/low calculations behave differently on a snapshot metric than on a cumulative one. Same insight names, different math. When a metric you follow gets the "Latest Point in Time" badge, the numbers and rankings will shift. That's not a bug. It's the metric finally answering the question it was supposed to answer all along.</p>
 
